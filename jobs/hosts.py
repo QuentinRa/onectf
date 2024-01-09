@@ -5,17 +5,19 @@ import os
 def run(parser : argparse.ArgumentParser, host_parser : argparse.ArgumentParser):
     host_parser.add_argument('ip', help='IP address to add/update')
     host_parser.add_argument('domain', nargs='+', help='Domain(s) to add/update')
-    host_parser.add_argument('--merge', dest='merge', action='store_true', default=True, help='Lines are merged by IP after insertion (default=YES).')
+    host_parser.add_argument('--skip', dest='no_merge', action='store_true', help='If set, don\'t merge lines by IP after insertion (default=NO).')
     host_parser.add_argument('--dry', dest='dry_run', action='store_true', help='If set, don\'t edit the host file (default=NO).')
+    host_parser.add_argument('--host-file', metavar='host', dest='host_file', help='Path to host file (default=%(default))')
     args = parser.parse_args()
-    do_job(args)
+    lines = do_job(args)
+    print(lines)
 
 
 def do_job(args):
     target_ip = args.ip
     domains = args.domain
     found_domains = set()
-    output_file = os.path.expanduser('/etc/hosts')
+    output_file = os.path.expanduser(args.host_file)
 
     try:
         with open(output_file, 'r') as file:
@@ -59,11 +61,12 @@ def do_job(args):
                         final_domains.append(domain)
                 lines.append(f"{target_ip}\t{' '.join(final_domains)}")
 
-    except FileNotFoundError:
+    except FileNotFoundError as e:
+        print(e)
         lines = [f"{target_ip}\t{' '.join(domains)}"]
 
-    # remove empty lines
-    if args.merge:
+    # remove empty lines and merge by IP
+    if not args.no_merge:
         merged_data = {}
         for line in lines:
             values = line.split()
@@ -82,7 +85,6 @@ def do_job(args):
             lines.append(f"{k:<{max_key_length + 5}}{' '.join(v)}")
 
     final_lines = '\n'.join(lines)
-    print(final_lines)
 
     # Write 'final_lines' to 'output_file'
     if not args.dry_run:
@@ -90,5 +92,7 @@ def do_job(args):
             with open(output_file, 'w') as dest:
                 dest.writelines(final_lines)
         except PermissionError as e:
-            print(f"\nYou need to use 'sudo' to edit {output_file} ({e}).")
+            print(f"You need to use 'sudo' to edit {output_file} ({e}).\n")
+
+    return final_lines
 
