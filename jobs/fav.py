@@ -1,3 +1,4 @@
+import argparse
 
 hard_coded_commands = {
     "nmap" : [
@@ -18,6 +19,13 @@ hard_coded_commands = {
 }
 
 
+def run(parser : argparse.ArgumentParser, fav_parser : argparse.ArgumentParser):
+    fav_parser.add_argument('category', help='The category of the command to fetch.')
+    fav_parser.add_argument('-u', metavar='target', dest='target', help='The IP or domain name to target.')
+    args = parser.parse_args()
+    do_job(args)
+
+
 def do_job(args):
     if args.category in hard_coded_commands:
         result = '\n'.join(hard_coded_commands[args.category])
@@ -25,4 +33,3 @@ def do_job(args):
             result = result.replace("${IP}", args.target)
             result = result.replace("${URL}", args.target)
         print(result)
-

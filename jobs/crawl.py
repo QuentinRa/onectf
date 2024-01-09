@@ -1,22 +1,37 @@
+import argparse
 import queue
 import re
-import sys
 import threading
 import urllib.parse
 import bs4
 import requests
 import urllib3
+import impl.worker
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 set_lock = threading.Lock()
 
 
-def init(args):
+def run(parser : argparse.ArgumentParser, crawl_parser : argparse.ArgumentParser):
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+    crawl_parser.add_argument('-u', dest='url', help='The target website URL.', required=True)
+    crawl_parser.add_argument('-t', metavar='threads', dest='threads', default=10, help='Number of threads (default=%(default)s).')
+    crawl_parser.add_argument('-o', metavar='output', dest='output_file', help='Write the output to a file.')
+    crawl_parser.add_argument('-k', dest='ssl_verify', default=True, action='store_false', help='Write the output to a file.')
+    args = parser.parse_args()
+
     args.links = queue.Queue()  # what we didn't explore
     args.found_urls = set()     # what we found
     add_to_set(args, args.url)
     # we don't want to crawl these pages
     args.crawl_url_filter_match = re.compile('.*(css|js|png|jpg|gif)$')
+
+    try:
+        impl.worker.start_threads(execute_worker_task, args, args.links)
+    except KeyboardInterrupt:
+        print()
+    finally:
+        done(args)
 
 
 def execute_worker_task(args):
@@ -33,7 +48,15 @@ def do_job(args, url):
     root = url
     print(f'[*] Crawl {url}')
 
-    response = requests.get(url, verify=args.ssl_verify, allow_redirects=True)
+    try:
+        response = requests.get(url, verify=args.ssl_verify, allow_redirects=True)
+    except Exception as e:
+        print(f'[ERROR] Could not send request, reason={e}')
+        # clear queue
+        while not args.links.empty():
+            args.links.get()
+        return
+
 
     if response.status_code != 200:
         print(f'[{response.status_code}] Unable to access {url}')

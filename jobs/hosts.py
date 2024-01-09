@@ -1,4 +1,14 @@
+import argparse
 import os
+
+
+def run(parser : argparse.ArgumentParser, host_parser : argparse.ArgumentParser):
+    host_parser.add_argument('ip', help='IP address to add/update')
+    host_parser.add_argument('domain', nargs='+', help='Domain(s) to add/update')
+    host_parser.add_argument('--merge', dest='merge', action='store_true', default=True, help='Lines are merged by IP after insertion (default=YES).')
+    host_parser.add_argument('--dry', dest='dry_run', action='store_true', help='If set, don\'t edit the host file (default=NO).')
+    args = parser.parse_args()
+    do_job(args)
 
 
 def do_job(args):
