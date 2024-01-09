@@ -4,6 +4,7 @@ import impl.constants
 import impl.core
 import impl.worker
 import jobs.crawl
+import jobs.fav
 import jobs.hosts
 
 
@@ -23,6 +24,8 @@ def main():
             jobs.crawl.done(args)
     elif args.command == 'hosts':
         jobs.hosts.do_job(args)
+    elif args.command == 'fav':
+        jobs.fav.do_job(args)
     else:
         raise Exception("Command not supported.")
 

@@ -16,7 +16,7 @@ def init(args):
     args.found_urls = set()     # what we found
     add_to_set(args, args.url)
     # we don't want to crawl these pages
-    args.crawl_url_filter_match = re.compile('.*(css|js|png|jpg)$')
+    args.crawl_url_filter_match = re.compile('.*(css|js|png|jpg|gif)$')
 
 
 def execute_worker_task(args):

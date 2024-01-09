@@ -4,17 +4,18 @@ A set of utilities. Mostly written for fun or to practice.
 
 ## Crawler
 
-Used to crawl a simple HTML/PHP website using links (`<a>`), images (`<img>`), scripts (`<script>`), and that's all for now.
+Used to crawl a simple HTML/PHP website using links (`<a>`), images (`<img>`), scripts (`<script>`), javascript (`location.href`), and that's all for now.
 
 ```bash
 onectf crawl -h
 onectf crawl -u URL -o /tmp/output.txt
+onectf crawl -u URL -o /tmp/output.txt -k # ignore SSL errors
 ```
 
 Tested on:
 
-* [THM mustacchio](https://tryhackme.com/room/mustacchio)
-* [HTB Cap](https://app.hackthebox.com/machines/Cap)
+* [THM mustacchio](https://tryhackme.com/room/mustacchio) <small>(links, images, scripts)</small>
+* [HTB Cap](https://app.hackthebox.com/machines/Cap) <small>(location.href, anchors, redirections)</small>
 
 Roadmap
 

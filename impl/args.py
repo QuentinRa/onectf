@@ -7,6 +7,7 @@ def parse_arguments():
     commands_parser = parser.add_subparsers(title='subcommands', dest='command', required=True)
     command_crawl = commands_parser.add_parser('crawl', help='Crawl a website using link between pages.')
     command_host = commands_parser.add_parser('hosts', help='Add or update IP and domain in /etc/hosts')
+    command_fav = commands_parser.add_parser('fav', help='Get your favorite commands')
 
     general_options = parser.add_argument_group("GENERAL OPTIONS")
 
@@ -24,6 +25,10 @@ def parse_arguments():
     command_crawl.add_argument('-t', metavar='threads', dest='threads', default=10, help='Number of threads (default=%(default)s).')
     command_crawl.add_argument('-o', metavar='output', dest='output_file', help='Write the output to a file.')
     command_crawl.add_argument('-k', dest='ssl_verify', default=True, action='store_false', help='Write the output to a file.')
+
+    # Fav Command Options
+    command_fav.add_argument('category', help='The category of the command to fetch.')
+    command_fav.add_argument('-u', metavar='target', dest='target', help='The IP or domain name to target.')
 
     return parser.parse_args()
 
