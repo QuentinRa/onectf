@@ -14,6 +14,7 @@ def main():
     command_crawl = commands_parser.add_parser('crawl', help='Crawl a website using link between pages.')
     command_host = commands_parser.add_parser('hosts', help='Add or update IP and domain in /etc/hosts')
     command_fav = commands_parser.add_parser('fav', help='Get your favorite commands')
+    command_request = commands_parser.add_parser('request', help="CLI Request Encoder")
 
     args, remaining_args = parser.parse_known_args()
 
@@ -28,6 +29,9 @@ def main():
     elif args.module == 'fav':
         import jobs.fav
         jobs.fav.run(parser, command_fav)
+    elif args.module == 'request':
+        import jobs.request
+        jobs.request.run(parser, command_request)
     else:
         raise Exception("Command not supported.")
 
