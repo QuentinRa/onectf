@@ -18,6 +18,7 @@ def run(parser : argparse.ArgumentParser, crawl_parser : argparse.ArgumentParser
     crawl_parser.add_argument('-t', metavar='threads', dest='threads', default=10, help='Number of threads (default=%(default)s).')
     crawl_parser.add_argument('-o', metavar='output', dest='output_file', help='Write the output to a file.')
     crawl_parser.add_argument('-k', dest='ssl_verify', default=True, action='store_false', help='Write the output to a file.')
+    crawl_parser.add_argument('--pc', '--print-comments', dest='print_comments', action='store_true', help='Display comments (experimental).')
     args = parser.parse_args()
 
     args.links = queue.Queue()  # what we didn't explore
@@ -92,6 +93,13 @@ def do_job(args, url):
             end_index = onclick_value.rfind("'")
             href = onclick_value[start_index:end_index]
             parse_href_link(args, root, url, href)
+
+    if args.print_comments:
+        comments = soup.find_all(string=lambda text: isinstance(text, bs4.Comment))
+        for comment in comments:
+            comment = ' '.join(comment.split())
+            if comment:
+                print(comment)
 
 
 def add_to_set(args, value):

@@ -18,7 +18,7 @@ def run(parser : argparse.ArgumentParser, request_parser : argparse.ArgumentPars
     http_options.add_argument("-X", dest="method", default="GET", help="HTTP Method (default=%(default)s)")
     http_options.add_argument("-H", metavar="header", dest="headers", action="append",
                               help="Header 'Name: Value', separated by colon. Multiple -H flags are accepted.")
-    http_options.add_argument("-d", dest="data", help="POST data.", default={})
+    http_options.add_argument("-d", dest="data", help="POST data.")
 
     # PAYLOAD Options
     payload_options.add_argument("--s2t", dest="space2tab", action="store_true", help="Convert all spaces to tabs.")
@@ -69,7 +69,10 @@ def verify_arguments(args):
         parts = header.split(":")
         data.headers[parts[0].strip()] = parts[1].strip()
 
-    data.data = {k: v for k, v in [pair.split('=') for pair in args.data.split('&')]}
+    if args.data:
+        data.data = {k: v for k, v in [pair.split('=') for pair in args.data.split('&')]}
+    else:
+        data.data = {}
 
     return data
 
