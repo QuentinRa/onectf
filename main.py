@@ -16,6 +16,7 @@ def main():
     command_host = commands_parser.add_parser('hosts', help='Add or update IP and domain in /etc/hosts')
     command_fav = commands_parser.add_parser('fav', help='Get your favorite commands')
     command_request = commands_parser.add_parser('request', help="CLI Request Encoder")
+    command_uffuf = commands_parser.add_parser('uffuf', help="Unrestricted File Upload Fuzzer")
 
     module = sys.argv[1] if len(sys.argv) > 2 else None
     if module is None or module in ["-V", "-h"]:
@@ -35,6 +36,9 @@ def main():
     elif module == 'request':
         import jobs.request
         jobs.request.run(parser, command_request)
+    elif module == 'uffuf':
+        import jobs.uffuf
+        jobs.uffuf.run(parser, command_uffuf)
     else:
         raise Exception("Command not supported.")
 
