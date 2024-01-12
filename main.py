@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import sys
 
 import impl.constants
 import impl.core
@@ -16,20 +17,22 @@ def main():
     command_fav = commands_parser.add_parser('fav', help='Get your favorite commands')
     command_request = commands_parser.add_parser('request', help="CLI Request Encoder")
 
-    args, remaining_args = parser.parse_known_args()
+    module = sys.argv[1] if len(sys.argv) > 2 else None
+    if module is None or module in ["-V", "-h"]:
+        parser.parse_known_args()
 
     print(f"onectf v{impl.constants.version}\n")
 
-    if args.module == 'crawl':
+    if module == 'crawl':
         import jobs.crawl
         jobs.crawl.run(parser, command_crawl)
-    elif args.module == 'hosts':
+    elif module == 'hosts':
         import jobs.hosts
         jobs.hosts.run(parser, command_host)
-    elif args.module == 'fav':
+    elif module == 'fav':
         import jobs.fav
         jobs.fav.run(parser, command_fav)
-    elif args.module == 'request':
+    elif module == 'request':
         import jobs.request
         jobs.request.run(parser, command_request)
     else:
