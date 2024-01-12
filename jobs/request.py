@@ -1,5 +1,4 @@
 import argparse
-import sys
 
 import requests
 import html2text
@@ -16,8 +15,7 @@ def run(parser : argparse.ArgumentParser, request_parser : argparse.ArgumentPars
     http_options.add_argument("-p", dest="param", help="Name of the injected parameter.", required=True)
     http_options.add_argument("-i", dest="inject", help="Unencoded value to inject in parameter", required=True)
     http_options.add_argument("-X", dest="method", default="GET", help="HTTP Method (default=%(default)s)")
-    http_options.add_argument("-H", metavar="header", dest="headers", action="append",
-                              help="Header 'Name: Value', separated by colon. Multiple -H flags are accepted.")
+    http_options.add_argument("-H", metavar="header", dest="headers", action="append", help="Header 'Name: Value', separated by colon. Multiple -H flags are accepted.")
     http_options.add_argument("-d", dest="data", help="POST data.")
 
     # PAYLOAD Options
@@ -25,8 +23,7 @@ def run(parser : argparse.ArgumentParser, request_parser : argparse.ArgumentPars
 
     # General Options
     general_options.add_argument("--raw", dest="is_raw", action="store_true", help="Raw HTML output")
-    general_options.add_argument("--nr", "--no-redirect", action="store_true",
-                                 help="Don't follow the response redirection.")
+    general_options.add_argument("--nr", "--no-redirect", action="store_true", help="Don't follow the response redirection.")
     general_options.add_argument("-v", dest="is_verbose", action="store_true", help="Verbose output")
 
     args = parser.parse_args()
@@ -58,8 +55,7 @@ def verify_arguments(args):
         data.parsed_url = urllib.parse.urlparse(data.url)
         data.query_params = urllib.parse.parse_qs(data.parsed_url.query)
         if data.param not in data.query_params:
-            print(f'Error: could not find {data.method} parameter "{data.param}".')
-            sys.exit(1)
+            data.query_params[data.param] = []
     else:
         data.parsed_url = data.url
 
@@ -86,6 +82,7 @@ def _do_clean_injected_word(word):
 
 def do_job(args, word):
     word = _do_clean_injected_word(word)
+    body_data = args.data
     if args.method == "GET":
         pu = args.parsed_url
         args.query_params[args.param] = [word]
@@ -93,7 +90,6 @@ def do_job(args, word):
         updated_url = urllib.parse.urlunparse((pu.scheme, pu.netloc, pu.path, pu.params, updated_query, pu.fragment))
     else:
         updated_url = args.parsed_url
-        body_data = args.data
         body_data[args.param] = word
 
     try:

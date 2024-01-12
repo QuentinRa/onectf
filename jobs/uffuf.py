@@ -61,7 +61,9 @@ def run(parser : argparse.ArgumentParser, uffuf_parser : argparse.ArgumentParser
     filter_options.add_argument("-fw", metavar="fw", help="Filter by amount of words in response")
 
     # Input Options
-    input_options.add_argument("-w", dest="wordlist", help="Wordlist file path and (optional) keyword separated by colon. eg. '/path/to/wordlist:KEYWORD'", required=True)
+    wordlist = input_options.add_mutually_exclusive_group(required = True)
+    wordlist.add_argument("-w", dest="wordlist", help="Wordlist file path and (optional) keyword separated by colon. eg. '/path/to/wordlist:KEYWORD'")
+    wordlist.add_argument("-W", dest="word", help="Word used instead of a wordlist.")
 
     args = parser.parse_args()
     args = verify_arguments(args)
@@ -165,19 +167,24 @@ def verify_arguments(args):
         # noinspection HttpUrlsUsage
         data.url = "http://" + args.url
 
-    try:
-        if ":" in args.wordlist:
-            [data.wordlist,keyword] = args.wordlist.split(":")
-            data.keyword = keyword
-        else:
-            data.wordlist = args.wordlist
-            data.keyword = "FUZZ"
+    if args.wordlist is not None:
+        try:
+            if ":" in args.wordlist:
+                [data.wordlist, keyword] = args.wordlist.split(":")
+                data.keyword = keyword
+            else:
+                data.wordlist = args.wordlist
+                data.keyword = "FUZZ"
 
-        with open(data.wordlist, 'r') as file:
-            data.words = file.readlines()
-    except FileNotFoundError:
-        print(f"Error: Wordlist '{data.wordlist}' not found.")
-        sys.exit(1)
+            with open(data.wordlist, 'r') as file:
+                data.words = file.readlines()
+        except FileNotFoundError:
+            print(f"Error: Wordlist '{data.wordlist}' not found.")
+            sys.exit(1)
+    else:
+        data.wordlist = '<word = ' + args.word + '>'
+        data.words = [args.word]
+        data.keyword = "FUZZ"
 
     try:
         with open(args.file, 'rb') as file:
