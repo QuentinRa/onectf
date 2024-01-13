@@ -4,6 +4,8 @@ import requests
 import html2text
 import urllib.parse
 
+import jobs.utils.tampering
+
 
 def run(parser : argparse.ArgumentParser, request_parser : argparse.ArgumentParser):
     http_options = request_parser.add_argument_group("HTTP OPTIONS")
@@ -13,13 +15,17 @@ def run(parser : argparse.ArgumentParser, request_parser : argparse.ArgumentPars
     # HTTP Options
     http_options.add_argument("-u", dest="url", required=True, help="Target URL")
     http_options.add_argument("-p", dest="param", help="Name of the injected parameter.", required=True)
-    http_options.add_argument("-i", dest="inject", help="Unencoded value to inject in parameter", required=True)
+    injecter = http_options.add_mutually_exclusive_group(required=True)
+    injecter.add_argument("-i", dest="inject", help="Unencoded value to inject in parameter")
+    injecter.add_argument("-I", dest="inject_file", help="Unencoded file to inject in parameter")
+
     http_options.add_argument("-X", dest="method", default="GET", help="HTTP Method (default=%(default)s)")
     http_options.add_argument("-H", metavar="header", dest="headers", action="append", help="Header 'Name: Value', separated by colon. Multiple -H flags are accepted.")
     http_options.add_argument("-d", dest="data", help="POST data.")
 
     # PAYLOAD Options
     payload_options.add_argument("--s2t", dest="space2tab", action="store_true", help="Convert all spaces to tabs.")
+    payload_options.add_argument("--tamper", dest="tamper", default="aliases", help="Comma separated list of payload transformations (default=%(default)s).")
 
     # General Options
     general_options.add_argument("--raw", dest="is_raw", action="store_true", help="Raw HTML output")
@@ -35,14 +41,18 @@ def verify_arguments(args):
     data = type('ProgramData', (), {
         'param': args.param,
         'method': args.method,
-        'inject': args.inject,
         'is_verbose': args.is_verbose,
         'is_raw': args.is_raw,
         'allow_redirects': not args.nr
     })
 
-    if args.space2tab:
-        data.inject = data.inject.replace(' ', '<tab>')
+    if args.inject:
+        data.inject = args.inject
+    else:
+        with open(args.inject_file, 'r') as f:
+            data.inject = '\n'.join(f.readlines())
+
+    data.tamper = jobs.utils.tampering.TamperingHandler(args.tamper)
 
     # compute URL
     if args.url.startswith("http"):
@@ -73,24 +83,25 @@ def verify_arguments(args):
     return data
 
 
-def _do_clean_injected_word(word):
-    word = word.replace("<tab>", "\u0009")
-    word = word.replace("<q>", "\u0027")
-    word = word.replace("<m>", "-")
-    word = word.replace("<er>", "2>&1")
-    return word
-
 
 def do_job(args, word):
-    word = _do_clean_injected_word(word)
+    word =  args.tamper.apply(word)
     body_data = args.data
+    updated_url = args.parsed_url
     if args.method == "GET":
         pu = args.parsed_url
-        args.query_params[args.param] = [word]
-        updated_query = urllib.parse.urlencode(args.query_params, doseq=True)
+        if args.tamper.encode_url():
+            args.query_params[args.param] = [word]
+            updated_query = urllib.parse.urlencode(args.query_params, doseq=True)
+        else:
+            updated_query = urllib.parse.urlencode(args.query_params, doseq=True)
+            if updated_query != "":
+                updated_query += "&"
+            updated_query += args.param + "=" + word
+
         updated_url = urllib.parse.urlunparse((pu.scheme, pu.netloc, pu.path, pu.params, updated_query, pu.fragment))
+        print(updated_url)
     else:
-        updated_url = args.parsed_url
         body_data[args.param] = word
 
     try:
