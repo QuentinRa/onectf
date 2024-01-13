@@ -46,7 +46,7 @@ def verify_arguments(args):
         'allow_redirects': not args.nr
     })
 
-    if args.inject:
+    if args.inject is not None:
         data.inject = args.inject
     else:
         with open(args.inject_file, 'r') as f:
@@ -85,7 +85,7 @@ def verify_arguments(args):
 
 
 def do_job(args, word):
-    word =  args.tamper.apply(word)
+    word = args.tamper.apply(word)
     body_data = args.data
     updated_url = args.parsed_url
     if args.method == "GET":
