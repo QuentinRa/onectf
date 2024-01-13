@@ -76,6 +76,7 @@ def verify_arguments(args):
 def _do_clean_injected_word(word):
     word = word.replace("<tab>", "\u0009")
     word = word.replace("<q>", "\u0027")
+    word = word.replace("<m>", "-")
     word = word.replace("<er>", "2>&1")
     return word
 

@@ -4,6 +4,7 @@ import os
 import queue
 import sys
 
+import html2text
 import pyfiglet
 import requests
 
@@ -150,10 +151,13 @@ def do_job(args, word):
         print(f'{word:<25} [Status: {res_code}, Size: {res_size}, Words: {words_count}, Lines: {lines_count}]')
 
         if args.is_verbose:
-            line = content.split('\n')[0]
-            print(f'{"":<25} [INFO] Output Content: {line}\n')
+            content = html2text.html2text(content).split('\n')
+            non_empty_lines = [line for line in content if line.strip() != ""]
+            content = '\\n'.join(non_empty_lines)
+            print(f'{"":<25} [INFO] Output Content: {content}\n')
     except Exception as e:
         print(f'{word:<25} [Error {e}]')
+
 
 def verify_arguments(args):
     data = type('ProgramData', (), {

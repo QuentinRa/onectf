@@ -43,3 +43,9 @@ $ ./main.py -u "<URL:port>/index.php?to=tmp&from=51459716.txt&finish=1&move=1" -
 - [ ] Add redirection switch
 - [ ] Add proper logging (headers=>not always)
 - [ ] Actually, follow the common approaches (sqlmap/...)
+- Root-me challenges
+
+```ps
+$ onectf request -u 'URL' -p ip  -X POST -v -i '|| cat file <er>'
+$ onectf request -u 'URL' -v -X POST -d 'param1=&param2=' -p 'param3' -i '5+5' --raw
+```
