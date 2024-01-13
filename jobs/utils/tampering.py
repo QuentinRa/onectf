@@ -1,4 +1,7 @@
 import sys
+import urllib.parse
+
+tamper_known_values = ['aliases', 'php_octal', 'space2tab', 'url']
 
 
 class TamperingHandler:
@@ -7,13 +10,10 @@ class TamperingHandler:
             return
         operations = tamper_list.split(',')
         self.invoke = []
-        self._encode_url = False
 
         for operation in operations:
             operation = "_" + operation
-            if operation == "_url":
-                self._encode_url = True
-            elif hasattr(self, operation):
+            if hasattr(self, operation):
                 method = getattr(self, operation)
                 self.invoke.append(method)
             else:
@@ -26,11 +26,11 @@ class TamperingHandler:
 
         return word
 
-    def encode_url(self):
-        return self._encode_url
-
     def _space2tab(self, word):
         return word.replace(' ', '<tab>')
+
+    def _url(self, word):
+        return urllib.parse.quote(word)
 
     def _aliases(self, word):
         return word.replace("<tab>", "\u0009") \

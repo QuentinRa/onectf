@@ -24,8 +24,10 @@ def run(parser : argparse.ArgumentParser, request_parser : argparse.ArgumentPars
     http_options.add_argument("-d", dest="data", help="POST data.")
 
     # PAYLOAD Options
-    payload_options.add_argument("--s2t", dest="space2tab", action="store_true", help="Convert all spaces to tabs.")
-    payload_options.add_argument("--tamper", dest="tamper", default="aliases", help="Comma separated list of payload transformations (default=%(default)s).")
+    payload_options.add_argument("--tamper", dest="tamper", default="aliases",
+                                 help="Comma separated list of payload transformations (default=%(default)s). "
+                                      f"Example values are: {', '.join(jobs.utils.tampering.tamper_known_values)}, etc."
+                                 )
 
     # General Options
     general_options.add_argument("--raw", dest="is_raw", action="store_true", help="Raw HTML output")
@@ -90,17 +92,9 @@ def do_job(args, word):
     updated_url = args.parsed_url
     if args.method == "GET":
         pu = args.parsed_url
-        if args.tamper.encode_url():
-            args.query_params[args.param] = [word]
-            updated_query = urllib.parse.urlencode(args.query_params, doseq=True)
-        else:
-            updated_query = urllib.parse.urlencode(args.query_params, doseq=True)
-            if updated_query != "":
-                updated_query += "&"
-            updated_query += args.param + "=" + word
-
+        args.query_params[args.param] = [word]
+        updated_query = urllib.parse.urlencode(args.query_params, doseq=True)
         updated_url = urllib.parse.urlunparse((pu.scheme, pu.netloc, pu.path, pu.params, updated_query, pu.fragment))
-        print(updated_url)
     else:
         body_data[args.param] = word
 
