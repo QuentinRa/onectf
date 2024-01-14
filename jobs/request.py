@@ -1,4 +1,6 @@
 import argparse
+import json
+import sys
 
 import requests
 import html2text
@@ -14,7 +16,11 @@ def run(parser : argparse.ArgumentParser, request_parser : argparse.ArgumentPars
 
     # HTTP Options
     http_options.add_argument("-u", dest="url", required=True, help="Target URL")
-    http_options.add_argument("-p", dest="param", help="Name of the injected parameter.", required=True)
+
+    parameter = http_options.add_mutually_exclusive_group(required=True)
+    parameter.add_argument("-p", dest="param", help="Name of the injected parameter.")
+    parameter.add_argument("--json", dest="param_json", action="store_true", help="If set, inject the ")
+
     injecter = http_options.add_mutually_exclusive_group(required=True)
     injecter.add_argument("-i", dest="inject", help="Unencoded value to inject in parameter")
     injecter.add_argument("-I", dest="inject_file", help="Unencoded file to inject in parameter")
@@ -41,7 +47,7 @@ def run(parser : argparse.ArgumentParser, request_parser : argparse.ArgumentPars
 
 def verify_arguments(args):
     data = type('ProgramData', (), {
-        'param': args.param,
+        'param': args.param, 'param_json': args.param_json,
         'method': args.method,
         'is_verbose': args.is_verbose,
         'is_raw': args.is_raw,
@@ -64,6 +70,9 @@ def verify_arguments(args):
         data.url = "http://" + args.url
 
     if data.method == "GET":
+        if data.param_json:
+            print(f"[ERROR] Cannot use '-X GET' with '--json'.")
+            sys.exit(2)
         data.parsed_url = urllib.parse.urlparse(data.url)
         data.query_params = urllib.parse.parse_qs(data.parsed_url.query)
         if data.param not in data.query_params:
@@ -88,6 +97,7 @@ def verify_arguments(args):
 def do_job(args, word):
     word = args.tamper.apply(word)
     body_data = args.data
+    json_data = None
     updated_url = args.parsed_url
     if args.method == "GET":
         pu = args.parsed_url
@@ -95,10 +105,14 @@ def do_job(args, word):
         updated_query = urllib.parse.urlencode(args.query_params)
         updated_url = urllib.parse.urlunparse((pu.scheme, pu.netloc, pu.path, pu.params, updated_query, pu.fragment))
     else:
-        body_data[args.param] = word
+        if args.param_json:
+            json_data = json.loads(word)
+        else:
+            body_data[args.param] = word
 
     try:
-        response = requests.request(args.method, updated_url, data=body_data, headers=args.headers, allow_redirects=args.allow_redirects)
+        response = requests.request(args.method, updated_url, data=body_data, headers=args.headers,
+                                    allow_redirects=args.allow_redirects, json=json_data)
 
         content = response.text
         if not args.is_raw:
@@ -115,6 +129,10 @@ def do_job(args, word):
             print("\nResponse Headers:")
             print(response.headers)
             print("\nResponse Content:")
-            print(content.replace("\n\n", "\n"))
+            if args.param_json:
+                content = response.json()
+                print(json.dumps(content, indent=2))
+            else:
+                print(content.replace("\n\n", "\n"))
     except Exception as e:
         print(f'[X] {e}')
