@@ -37,6 +37,7 @@ def run(parser : argparse.ArgumentParser, uffuf_parser : argparse.ArgumentParser
     # HTTP Options
     http_options.add_argument("-H", metavar="header", dest="headers", action="append", help="Header 'Name: Value', separated by colon. Multiple -H flags are accepted.")
     http_options.add_argument("-u", dest="url", required=True, help="Target URL")
+    http_options.add_argument("-d", metavar="data", dest="payload_data", nargs="+", help="Additional POST data.")
     http_options.add_argument("-p", dest="param", help="Name of the file parameter.", required=True)
     http_options.add_argument("-F", dest="file", help="Path to the file to upload.", required=True)
     http_options.add_argument("-Fn", dest="filename", default=keyword_auto, help="Name of the file to upload (default: %(default)s).")
@@ -46,6 +47,7 @@ def run(parser : argparse.ArgumentParser, uffuf_parser : argparse.ArgumentParser
     # General Options
     general_options.add_argument("-t", dest="threads", type=int, default=10, help="Number of concurrent threads (default: %(default)s)")
     general_options.add_argument("-v", dest="is_verbose", action="store_true", help="Verbose output")
+    general_options.add_argument("--raw", dest="is_raw", action="store_true", help="Raw HTML output")
 
     # Matcher Options
     matcher_options.add_argument("-mc", metavar="mc", default=default_status_codes, help="Match HTTP status codes, or 'all' for everything (default: %(default)s)")
@@ -132,8 +134,12 @@ def do_job(args, word):
 
     # print(f'[Testing Payload For {word}] ', files)
     try:
-        response = requests.post(args.url, files=files, headers=args.headers)
+        response = requests.post(args.url, data=args.payload_data, files=files, headers=args.headers)
+
         content = response.text
+        if not args.is_raw:
+            content = html2text.html2text(content)
+
         res_code = response.status_code
         res_size = response.headers.get('Content-Length')
         lines_count = len(content.splitlines())
@@ -151,9 +157,6 @@ def do_job(args, word):
         print(f'{word:<25} [Status: {res_code}, Size: {res_size}, Words: {words_count}, Lines: {lines_count}]')
 
         if args.is_verbose:
-            content = html2text.html2text(content).split('\n')
-            non_empty_lines = [line for line in content if line.strip() != ""]
-            content = '\\n'.join(non_empty_lines)
             print(f'{"":<25} [INFO] Output Content: {content}\n')
     except Exception as e:
         print(f'{word:<25} [Error {e}]')
@@ -162,7 +165,8 @@ def do_job(args, word):
 def verify_arguments(args):
     data = type('ProgramData', (), {
         'file': args.file, 'param': args.param, 'threads': args.threads,
-        'is_verbose': args.is_verbose, 'should_spoof': args.should_spoof
+        'is_verbose': args.is_verbose, 'should_spoof': args.should_spoof,
+        'is_raw': args.is_raw,
     })
 
     if args.url.startswith("http"):
@@ -214,6 +218,14 @@ def verify_arguments(args):
     if data.keyword not in data.filename and data.keyword not in data.filetype:
         print(f'Error: The keyword "{data.keyword}" was not found in either the filename or the filetype.')
         sys.exit(2)
+
+    data.payload_data = {}
+    for entry in args.payload_data:
+        if "=" not in entry:
+            print(f'Malformed POST data value ({entry}).')
+            sys.exit(2)
+        [k,v] = entry.split("=")
+        data.payload_data[k] = v
 
     # computer headers
     data.headers = {}

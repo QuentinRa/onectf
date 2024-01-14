@@ -85,7 +85,6 @@ def verify_arguments(args):
     return data
 
 
-
 def do_job(args, word):
     word = args.tamper.apply(word)
     body_data = args.data
@@ -93,7 +92,7 @@ def do_job(args, word):
     if args.method == "GET":
         pu = args.parsed_url
         args.query_params[args.param] = [word]
-        updated_query = urllib.parse.urlencode(args.query_params, doseq=True)
+        updated_query = urllib.parse.urlencode(args.query_params)
         updated_url = urllib.parse.urlunparse((pu.scheme, pu.netloc, pu.path, pu.params, updated_query, pu.fragment))
     else:
         body_data[args.param] = word
