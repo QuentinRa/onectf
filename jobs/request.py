@@ -102,7 +102,7 @@ def do_job(args, word):
     if args.method == "GET":
         pu = args.parsed_url
         args.query_params[args.param] = [word]
-        updated_query = urllib.parse.urlencode(args.query_params)
+        updated_query = urllib.parse.urlencode(args.query_params, doseq=True)
         updated_url = urllib.parse.urlunparse((pu.scheme, pu.netloc, pu.path, pu.params, updated_query, pu.fragment))
     else:
         if args.param_json:

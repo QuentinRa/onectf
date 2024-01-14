@@ -1,7 +1,8 @@
+import base64
 import sys
 import urllib.parse
 
-tamper_known_values = ['aliases', 'php_octal', 'space2tab', 'url']
+tamper_known_values = ['aliases', 'data_base64', 'php_octal', 'space2tab', 'url']
 
 
 class TamperingHandler:
@@ -38,6 +39,10 @@ class TamperingHandler:
                      .replace("<m>", "-") \
                      .replace("<er>", "2>&1") \
                      .replace("<cr>", "%0d%0a")
+
+    def _data_base64(self, word):
+        encoded_contents = base64.b64encode(word.encode()).decode('utf-8')
+        return f'data://text/plain;base64,{encoded_contents}'
 
     def _php_octal(self, word):
         """
