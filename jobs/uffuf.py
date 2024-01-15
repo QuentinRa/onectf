@@ -220,7 +220,7 @@ def verify_arguments(args):
         sys.exit(2)
 
     data.payload_data = {}
-    for entry in args.payload_data:
+    for entry in args.payload_data or []:
         if "=" not in entry:
             print(f'Malformed POST data value ({entry}).')
             sys.exit(2)
