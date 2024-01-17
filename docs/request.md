@@ -46,6 +46,9 @@ $ ./main.py -u "<URL:port>/index.php?to=tmp&from=51459716.txt&finish=1&move=1" -
 - Root-me challenges
 
 ```ps
-$ onectf request -u 'URL' -p ip  -X POST -v -i '|| cat file <er>'
-$ onectf request -u 'URL' -v -X POST -d 'param1=&param2=' -p 'param3' -i '5+5' --raw
+$ onectf request -u 'URL' -v -X POST -p param -i '|| cat file <er>'
+$ onectf request -u 'URL' -v -X POST -d 'param1=a&param2=b' -p 'param3' -i '5+5' --raw
+$ onectf request -u 'URL' -v -X POST -p 'param' -I file --raw --tamper data_base64
+$ onectf request -u 'URL' -v -X POST -p 'param' --tamper php_octal -i 'phpinfo()'
+$ onectf request -u 'URL' -v -X POST --json -I request.ql
 ```

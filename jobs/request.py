@@ -7,6 +7,7 @@ import html2text
 import urllib.parse
 
 import jobs.utils.tampering
+from impl.core import BaseProgramData
 
 
 def run(parser : argparse.ArgumentParser, request_parser : argparse.ArgumentParser):
@@ -32,12 +33,12 @@ def run(parser : argparse.ArgumentParser, request_parser : argparse.ArgumentPars
     # PAYLOAD Options
     payload_options.add_argument("--tamper", dest="tamper", default="aliases",
                                  help="Comma separated list of payload transformations (default=%(default)s). "
-                                      f"Example values are: {', '.join(jobs.utils.tampering.tamper_known_values)}, etc."
-                                 )
+                                      f"Example values are: {', '.join(jobs.utils.tampering.tamper_known_values)}, etc.")
 
     # General Options
     general_options.add_argument("--raw", dest="is_raw", action="store_true", help="Raw HTML output")
     general_options.add_argument("--nr", "--no-redirect", action="store_true", help="Don't follow the response redirection.")
+    general_options.add_argument('-t', metavar='threads', dest='threads', default=10, help='Number of threads (default=%(default)s).')
     general_options.add_argument("-v", dest="is_verbose", action="store_true", help="Verbose output")
 
     args = parser.parse_args()
@@ -45,23 +46,30 @@ def run(parser : argparse.ArgumentParser, request_parser : argparse.ArgumentPars
     do_job(args, args.inject)
 
 
+class RequestProgramData(BaseProgramData):
+    def __init__(self, args):
+        super().__init__(args)
+    
+        self.param = args.param
+        self.param_json = args.param_json
+        self.method = args.method
+        self.is_verbose = args.is_verbose
+        self.is_raw = args.is_raw
+        self.allow_redirects = not args.nr
+
+        if args.inject is not None:
+            self.payload = [args.inject]
+        elif args.inject_file is not None:
+            with open(args.inject_file, 'r') as f:
+                self.payload = ['\n'.join(f.readlines())]
+        else:
+            pass
+
+        self.tamper = jobs.utils.tampering.TamperingHandler(args.tamper)
+
+
 def verify_arguments(args):
-    data = type('ProgramData', (), {
-        'param': args.param, 'param_json': args.param_json,
-        'method': args.method,
-        'is_verbose': args.is_verbose,
-        'is_raw': args.is_raw,
-        'allow_redirects': not args.nr
-    })
-
-    if args.inject is not None:
-        data.inject = args.inject
-    else:
-        with open(args.inject_file, 'r') as f:
-            data.inject = '\n'.join(f.readlines())
-
-    data.tamper = jobs.utils.tampering.TamperingHandler(args.tamper)
-
+    data = ProgramData(args)
     # compute URL
     if args.url.startswith("http"):
         data.url = args.url

