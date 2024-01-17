@@ -17,10 +17,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
 
     # HTTP Options
     http_options.add_argument("-u", dest="url", required=True, help="Target URL")
-
-    parameter = http_options.add_mutually_exclusive_group(required=True)
-    parameter.add_argument("-p", dest="param", help="Name of the injected parameter.")
-    parameter.add_argument("--json", dest="param_json", action="store_true", help="If set, inject the ")
+    http_options.add_argument("-p", dest="param", help="Name of the injected parameter.")
 
     injecter = http_options.add_mutually_exclusive_group(required=True)
     injecter.add_argument("-i", dest="inject", help="Unencoded value to inject in parameter")
@@ -44,8 +41,19 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
                                  help='Number of threads (default=%(default)s).')
     general_options.add_argument("-v", dest="is_verbose", action="store_true", help="Verbose output")
 
-    args = RequestProgramData(parser.parse_args())
-    do_job(args, args.payload)
+    args = parser.parse_args()
+    # Parse the payload
+    if args.inject is not None:
+        payload = [args.inject]
+    elif args.inject_file is not None:
+        with open(args.inject_file, 'r') as f:
+            payload = ['\n'.join(f.readlines())]
+    else:
+        raise Exception("Must specify either -i or -I.")
+    # Handle shared data
+    args = RequestProgramData(args)
+    # Run
+    do_job(args, payload[0])
 
 
 def do_job(args, word):
@@ -68,11 +76,7 @@ def do_job(args, word):
             print("\nResponse Headers:")
             print(response.headers)
             print("\nResponse Content:")
-            if args.param_json:
-                content = response.json()
-                print(json.dumps(content, indent=2))
-            else:
-                print(content.replace("\n\n", "\n"))
+            print(content.replace("\n\n", "\n"))
     except Exception as e:
         print(f'[X] {e}')
 
@@ -82,50 +86,31 @@ class RequestProgramData(impl.core.HttpProgramData):
         super().__init__(args)
 
         self.param = args.param
-        self.param_json = args.param_json
-
-        if args.inject is not None:
-            self.payload = [args.inject]
-        elif args.inject_file is not None:
-            with open(args.inject_file, 'r') as f:
-                self.payload = ['\n'.join(f.readlines())]
-        else:
-            # todo: ...
-            pass
-
         self.tamper = jobs.utils.tampering.TamperingHandler(args.tamper)
 
         if self.method == "GET":
-            if self.param_json:
-                print(f"[ERROR] Cannot use '-X GET' with '--json'.")
-                sys.exit(2)
-            self.parsed_url = urllib.parse.urlparse(self.url)
-            self.query_params = urllib.parse.parse_qs(self.parsed_url.query)
-            if self.param not in self.query_params:
-                self.query_params[self.param] = []
-        else:
-            self.parsed_url = self.url
+            self.__pu = urllib.parse.urlparse(self.url)
+            self.__query_params = urllib.parse.parse_qs(self.__pu.query)
 
     def inject_word(self, word):
         word = self.tamper.apply(word)
         body_data = self.body
-        json_data = None
-        updated_url = self.parsed_url
-        if self.method == "GET":
-            pu = self.parsed_url
-            self.query_params[self.param] = [word]
-            updated_query = urllib.parse.urlencode(self.query_params, doseq=True)
-            updated_url = urllib.parse.urlunparse(
-                (pu.scheme, pu.netloc, pu.path, pu.params, updated_query, pu.fragment))
-        else:
-            if self.param_json:
-                json_data = json.loads(word)
-            else:
-                body_data[self.param] = word
+        updated_url = self.url
 
-        return updated_url, body_data, json_data
+        # Inject 'word' in URL or in Body
+        if self.method == "GET":
+            self.__query_params[self.param] = [word]
+            updated_query = urllib.parse.urlencode(self.__query_params, doseq=True)
+            updated_url = urllib.parse.urlunparse(
+                (self.__pu.scheme, self.__pu.netloc, self.__pu.path, self.__pu.params, updated_query, self.__pu.fragment))
+        else:
+            body_data[self.param] = word
+
+        return updated_url, body_data, None
 
     def __str__(self):
         return f"{self.__class__.__name__}(" \
-               f"{super().__str__()}" \
+               f"{super().__str__()}, " \
+               f"Parameter={self.param}, " \
+               f"Tamper={self.tamper}" \
                f")"

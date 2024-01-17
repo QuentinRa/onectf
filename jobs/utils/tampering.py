@@ -11,6 +11,7 @@ class TamperingHandler:
             return
         operations = tamper_list.split(',')
         self.invoke = []
+        self.__tamper_list = tamper_list
 
         for operation in operations:
             operation = "_" + operation
@@ -24,7 +25,6 @@ class TamperingHandler:
     def apply(self, word):
         for method in self.invoke:
             word = method(word)
-
         return word
 
     def _space2tab(self, word):
@@ -67,4 +67,7 @@ class TamperingHandler:
         if had_letter:
             encoded += '"'
         return encoded.replace("\\0o", "\\")
+
+    def __str__(self):
+        return self.__tamper_list
 
