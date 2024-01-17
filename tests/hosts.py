@@ -6,7 +6,7 @@ base_args = type('args', (), {'ip': '10.10.10.10', 'domain': ['a.test'], 'dry_ru
                               'host_file': 'data/hosts/a', })
 
 
-class TestCalculator(unittest.TestCase):
+class TestHosts(unittest.TestCase):
 
     def _do_test(self, output, ip='10.10.10.10', domain=None, dry_run=True, no_merge=False, host_file='a'):
         if domain is None:
