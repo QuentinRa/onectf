@@ -11,6 +11,7 @@ setuptools.setup(
         "charset-normalizer<=3.3.2",
         "html2text<=2020.1.16",
         "idna<=3.6",
+        "pyfiglet<=1.0.2",
         "requests<=2.31.0",
         "soupsieve<=2.5",
         "urllib3<=2.1.0"

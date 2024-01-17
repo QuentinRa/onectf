@@ -58,7 +58,6 @@ def do_job(args, url):
             args.links.get()
         return
 
-
     if response.status_code != 200:
         print(f'[{response.status_code}] Unable to access {url}')
         return

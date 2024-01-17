@@ -1,9 +1,11 @@
 class BaseProgramData:
     def __init__(self, args):
         self.is_verbose = args.is_verbose
+        self.threads = args.threads
 
     def __str__(self):
-        return f"Verbose={self.is_verbose}"
+        return f"Verbose={self.is_verbose}, " \
+               f"Threads={self.threads}" \
 
 
 class HttpProgramData(BaseProgramData):

@@ -1,6 +1,6 @@
 import argparse
-import json
-import sys
+import queue
+import threading
 
 import requests
 import html2text
@@ -8,6 +8,9 @@ import urllib.parse
 
 import jobs.utils.tampering
 import impl.core
+import impl.worker
+
+print_lock = threading.Lock()
 
 
 def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser):
@@ -17,11 +20,12 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
 
     # HTTP Options
     http_options.add_argument("-u", dest="url", required=True, help="Target URL")
-    http_options.add_argument("-p", dest="param", help="Name of the injected parameter.")
+    http_options.add_argument("-p", dest="param", help="Name of the injected parameter.", required=True)
 
     injecter = http_options.add_mutually_exclusive_group(required=True)
-    injecter.add_argument("-i", dest="inject", help="Unencoded value to inject in parameter")
-    injecter.add_argument("-I", dest="inject_file", help="Unencoded file to inject in parameter")
+    injecter.add_argument("-i", dest="inject", help="Unencoded value to inject in parameter.")
+    injecter.add_argument("-I", dest="inject_file", help="Unencoded file to inject in parameter.")
+    injecter.add_argument("-w", dest="inject_wordlist", help="Unencoded wordlist of values to inject in parameter.")
 
     http_options.add_argument("-X", dest="method", default="GET", help="HTTP Method (default=%(default)s)")
     http_options.add_argument("-H", metavar="header", dest="headers", action="append",
@@ -42,18 +46,40 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
     general_options.add_argument("-v", dest="is_verbose", action="store_true", help="Verbose output")
 
     args = parser.parse_args()
+
     # Parse the payload
+    use_threading = False
     if args.inject is not None:
         payload = [args.inject]
     elif args.inject_file is not None:
         with open(args.inject_file, 'r') as f:
             payload = ['\n'.join(f.readlines())]
     else:
-        raise Exception("Must specify either -i or -I.")
+        with open(args.inject_wordlist, 'r') as f:
+            payload = f.readlines()
+            use_threading = True
+
     # Handle shared data
     args = RequestProgramData(args)
+
     # Run
-    do_job(args, payload[0])
+    if use_threading:
+        args.words = queue.Queue()
+        for word in payload:
+            args.words.put(word.strip())
+        impl.worker.start_threads(execute_worker_task, args, args.words)
+    else:
+        do_job(args, payload[0])
+
+
+def execute_worker_task(args):
+    """Worker function to consume links from the queue."""
+    while True:
+        word = args.words.get()
+        if word is None:
+            break
+        do_job(args, word)
+        args.words.task_done()
 
 
 def do_job(args, word):
@@ -70,13 +96,14 @@ def do_job(args, word):
         lines_count = len(content.splitlines())
         words_count = len(content.split())
 
-        print(f'{word:<25} [Status: {res_code}, Size: {res_size}, Words: {words_count}, Lines: {lines_count}]')
+        with print_lock:
+            print(f'{word:<25} [Status: {res_code}, Size: {res_size}, Words: {words_count}, Lines: {lines_count}]')
 
-        if args.is_verbose:
-            print("\nResponse Headers:")
-            print(response.headers)
-            print("\nResponse Content:")
-            print(content.replace("\n\n", "\n"))
+            if args.is_verbose:
+                print("\nResponse Headers:")
+                print(response.headers)
+                print("\nResponse Content:")
+                print(content.replace("\n\n", "\n"))
     except Exception as e:
         print(f'[X] {e}')
 
