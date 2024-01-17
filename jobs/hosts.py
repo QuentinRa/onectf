@@ -4,10 +4,10 @@ import os
 
 def run(parser : argparse.ArgumentParser, host_parser : argparse.ArgumentParser):
     host_parser.add_argument('ip', help='IP address to add/update')
-    host_parser.add_argument('domain', nargs='+', help='Domain(s) to add/update')
-    host_parser.add_argument('--skip', dest='no_merge', action='store_true', help='If set, don\'t merge lines by IP after insertion (default=NO).')
-    host_parser.add_argument('--dry', dest='dry_run', action='store_true', help='If set, don\'t edit the host file (default=NO).')
-    host_parser.add_argument('--host-file', metavar='host', dest='host_file', default="/etc/hosts", help='Path to host file (default=%(default))')
+    host_parser.add_argument('domain', nargs='+', help='Domain(s) to add or update.')
+    host_parser.add_argument('--skip', dest='no_merge', action='store_true', help='Don\'t merge lines by IP after insertion.')
+    host_parser.add_argument('--dry', dest='dry_run', action='store_true', help='Don\'t edit the host file.')
+    host_parser.add_argument('--host-file', metavar='host', dest='host_file', default="/etc/hosts", help='Path to host file (default=%(default)s)')
     args = parser.parse_args()
     lines = do_job(args)
     print(lines)
