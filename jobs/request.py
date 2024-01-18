@@ -28,6 +28,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
     parameter = http_options.add_mutually_exclusive_group(required=True)
     parameter.add_argument("-p", dest="param", help="Name of the injected parameter.")
     parameter.add_argument("--fuzz", dest="use_fuzzing", help="Use fuzzing instead of parameter injection.", action="store_true")
+    parameter.add_argument("--json", dest="use_json", help="Send payload as JSON in the request body.", action="store_true")
 
     injecter = http_options.add_mutually_exclusive_group(required=True)
     injecter.add_argument("-i", dest="inject", help="Unencoded value to inject in parameter.")
@@ -124,6 +125,7 @@ class RequestProgramData(impl.core.HttpProgramData):
         self.format = args.format
 
         self.use_fuzzing = args.use_fuzzing
+        self.use_json = args.use_json
         if self.use_fuzzing:
             self.param = 'FUZZ'
             self.fuzzing_source = None
@@ -135,6 +137,11 @@ class RequestProgramData(impl.core.HttpProgramData):
             if self.fuzzing_source is None:
                 logging.error(f'[ERROR] FUZZ keyword not in URL nor in Request Body.')
                 sys.exit(2)
+        elif self.use_json:
+            self.param = '<none>'
+            if self.method == 'GET':
+                print(f"[ERROR] Cannot use '-X GET' with '--json'.")
+                sys.exit(2)
         else:
             self.param = args.param
             if self.method == "GET":
@@ -145,6 +152,7 @@ class RequestProgramData(impl.core.HttpProgramData):
         word = self.tamper.apply(word)
         body_data = self.body
         updated_url = self.url
+        json_data = None
 
         # Inject 'word' in URL or in Body
         if self.use_fuzzing:
@@ -152,6 +160,8 @@ class RequestProgramData(impl.core.HttpProgramData):
                 updated_url = updated_url.replace("FUZZ", word)
             else:
                 body_data[self.param] = word
+        elif self.use_json:
+            json_data = json.loads(word)
         else:
             if self.method == "GET":
                 self.__query_params[self.param] = [word]
@@ -162,7 +172,7 @@ class RequestProgramData(impl.core.HttpProgramData):
             else:
                 body_data[self.param] = word
 
-        return updated_url, body_data, None
+        return updated_url, body_data, json_data
 
     def parse_response_content(self, response):
         if self.format == "json" and response.text != '':

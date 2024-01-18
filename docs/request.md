@@ -50,5 +50,5 @@ $ onectf request -u 'URL' -v -X POST -p param -i '|| cat file <er>'
 $ onectf request -u 'URL' -v -X POST -d 'param1=a&param2=b' -p 'param3' -i '5+5' --raw
 $ onectf request -u 'URL' -v -X POST -p 'param' -I file --raw --tamper data_base64
 $ onectf request -u 'URL' -v -X POST -p 'param' --tamper php_octal -i 'phpinfo()'
-$ onectf request -u 'URL' -v -X POST --json -I request.ql
+$ onectf request -u 'URL' -v -X POST --json -I request.json
 ```
