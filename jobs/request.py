@@ -143,13 +143,15 @@ class RequestProgramData(impl.core.HttpProgramData):
     def parse_response_content(self, response):
         if self.format == "json":
             return response.json(), 0, 0
-        elif self.format == "html":
-            content = response.text
-            content = html2text.html2text(content)
-            content = content.replace("\n\n", "\n")
-            return content, 0, 0
 
-        return response.text.replace("\n\n", "\n"), 0, 0
+        content = response.text
+        if self.format == "html":
+            content = html2text.html2text(content)
+        lines_count = len(content.splitlines())
+        words_count = len(content.split())
+        content = content.replace("\n\n", "\n")
+
+        return content, lines_count, words_count
 
     def __str__(self):
         return f"{self.__class__.__name__}(" \

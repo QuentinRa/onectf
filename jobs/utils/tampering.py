@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import sys
 import urllib.parse
 
@@ -41,8 +42,15 @@ class TamperingHandler:
                      .replace("<cr>", "%0d%0a")
 
     def _data_base64(self, word):
-        encoded_contents = base64.b64encode(word.encode()).decode('utf-8')
-        return f'data://text/plain;base64,{encoded_contents}'
+        return f'data://text/plain;base64,{self._base64(word)}'
+
+    def _base64(self, word):
+        return base64.b64encode(word.encode()).decode('utf-8')
+
+    def _md5(self, word):
+        md5 = hashlib.md5()
+        md5.update(word.encode())
+        return md5.hexdigest()
 
     def _php_octal(self, word):
         """
