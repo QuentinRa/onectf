@@ -29,6 +29,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
     parameter.add_argument("-p", dest="param", help="Name of the injected parameter.")
     parameter.add_argument("--fuzz", dest="use_fuzzing", help="Use fuzzing instead of parameter injection.", action="store_true")
     parameter.add_argument("--json", dest="use_json", help="Send payload as JSON in the request body.", action="store_true")
+    parameter.add_argument("--raw", dest="use_raw", help="Send payload in the request body.", action="store_true")
 
     injecter = http_options.add_mutually_exclusive_group(required=True)
     injecter.add_argument("-i", dest="inject", help="Unencoded value to inject in parameter.")
@@ -98,9 +99,10 @@ def execute_worker_task(args):
 
 
 def do_job(args, word):
-    (url, body_data, json_data) = args.inject_word(word)
+    (url, headers, body_data, json_data) = args.inject_word(word)
+    word = word.replace('\n', '\\n')
     try:
-        response = requests.request(args.method, url, data=body_data, headers=args.headers,
+        response = requests.request(args.method, url, data=body_data, headers=headers,
                                     allow_redirects=args.allow_redirects, json=json_data)
         logging.debug(f'\nHTTP {url}, Body: {body_data}, JSON: {json_data}\n')
         content, lines, words = args.parse_response_content(response)
@@ -126,21 +128,35 @@ class RequestProgramData(impl.core.HttpProgramData):
 
         self.use_fuzzing = args.use_fuzzing
         self.use_json = args.use_json
+        self.use_raw = args.use_raw
         if self.use_fuzzing:
             self.param = 'FUZZ'
             self.fuzzing_source = None
             if "FUZZ" in self.url:
                 self.fuzzing_source = 'URL'
-            elif "FUZZ" not in self.body:
+            elif "FUZZ" in self.body:
                 self.fuzzing_source = 'BODY'
+            else:
+                for k, v in self.headers.items():
+                    if 'FUZZ' in v:
+                        self.fuzzing_source = k
+                        break
 
             if self.fuzzing_source is None:
-                logging.error(f'[ERROR] FUZZ keyword not in URL nor in Request Body.')
+                logging.error(f'[ERROR] FUZZ keyword not found (checked URL, Body, Headers).')
                 sys.exit(2)
         elif self.use_json:
             self.param = '<none>'
             if self.method == 'GET':
                 print(f"[ERROR] Cannot use '-X GET' with '--json'.")
+                sys.exit(2)
+        elif self.use_raw:
+            self.param = '<none>'
+            if self.method == 'GET':
+                print(f"[ERROR] Cannot use '-X GET' with '--raw'.")
+                sys.exit(2)
+            if self.body != {}:
+                print(f"[ERROR] Cannot use '-d' with '--raw'.")
                 sys.exit(2)
         else:
             self.param = args.param
@@ -153,15 +169,21 @@ class RequestProgramData(impl.core.HttpProgramData):
         body_data = self.body
         updated_url = self.url
         json_data = None
+        headers = self.headers
 
         # Inject 'word' in URL or in Body
         if self.use_fuzzing:
             if "URL" == self.fuzzing_source:
                 updated_url = updated_url.replace("FUZZ", word)
-            else:
+            elif "BODY" == self.fuzzing_source:
                 body_data[self.param] = word
+            else:
+                headers = self.headers
+                headers[self.fuzzing_source] = headers[self.fuzzing_source].replace("FUZZ", word)
         elif self.use_json:
             json_data = json.loads(word)
+        elif self.use_raw:
+            body_data = word
         else:
             if self.method == "GET":
                 self.__query_params[self.param] = [word]
@@ -172,7 +194,7 @@ class RequestProgramData(impl.core.HttpProgramData):
             else:
                 body_data[self.param] = word
 
-        return updated_url, body_data, json_data
+        return updated_url, headers, body_data, json_data
 
     def parse_response_content(self, response):
         if self.format == "json" and response.text != '':

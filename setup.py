@@ -6,9 +6,10 @@ setuptools.setup(
     version=impl.constants.version,
     packages=setuptools.find_packages(),
     install_requires=[
-        "beautifulsoup4<=4.12.2",
+        "beautifulsoup4<=4.12.3",
         "certifi<=2023.11.17",
         "charset-normalizer<=3.3.2",
+        "colorama<=0.4.6",
         "html2text<=2020.1.16",
         "idna<=3.6",
         "pyfiglet<=1.0.2",

@@ -39,7 +39,7 @@ class HttpProgramData(BaseProgramData):
         self.headers = {}
         for header in args.headers or []:
             parts = header.split(":")
-            args.headers[parts[0].strip()] = parts[1].strip()
+            self.headers[parts[0].strip()] = parts[1].strip()
 
         if args.body:
             self.body = {k: v for k, v in [pair.split('=') for pair in args.data.split('&')]}
