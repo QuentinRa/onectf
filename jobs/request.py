@@ -1,6 +1,8 @@
 import argparse
+import json
 import logging
 import queue
+import sys
 import threading
 
 import colorama
@@ -23,7 +25,9 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
 
     # HTTP Options
     http_options.add_argument("-u", dest="url", required=True, help="Target URL")
-    http_options.add_argument("-p", dest="param", help="Name of the injected parameter.", required=True)
+    parameter = http_options.add_mutually_exclusive_group(required=True)
+    parameter.add_argument("-p", dest="param", help="Name of the injected parameter.")
+    parameter.add_argument("--fuzz", dest="use_fuzzing", help="Use fuzzing instead of parameter injection.", action="store_true")
 
     injecter = http_options.add_mutually_exclusive_group(required=True)
     injecter.add_argument("-i", dest="inject", help="Unencoded value to inject in parameter.")
@@ -116,13 +120,26 @@ class RequestProgramData(impl.core.HttpProgramData):
     def __init__(self, args):
         super().__init__(args)
 
-        self.param = args.param
         self.tamper = jobs.utils.tampering.TamperingHandler(args.tamper)
         self.format = args.format
 
-        if self.method == "GET":
-            self.__pu = urllib.parse.urlparse(self.url)
-            self.__query_params = urllib.parse.parse_qs(self.__pu.query)
+        self.use_fuzzing = args.use_fuzzing
+        if self.use_fuzzing:
+            self.param = 'FUZZ'
+            self.fuzzing_source = None
+            if "FUZZ" in self.url:
+                self.fuzzing_source = 'URL'
+            elif "FUZZ" not in self.body:
+                self.fuzzing_source = 'BODY'
+
+            if self.fuzzing_source is None:
+                logging.error(f'[ERROR] FUZZ keyword not in URL nor in Request Body.')
+                sys.exit(2)
+        else:
+            self.param = args.param
+            if self.method == "GET":
+                self.__pu = urllib.parse.urlparse(self.url)
+                self.__query_params = urllib.parse.parse_qs(self.__pu.query)
 
     def inject_word(self, word):
         word = self.tamper.apply(word)
@@ -130,19 +147,27 @@ class RequestProgramData(impl.core.HttpProgramData):
         updated_url = self.url
 
         # Inject 'word' in URL or in Body
-        if self.method == "GET":
-            self.__query_params[self.param] = [word]
-            updated_query = urllib.parse.urlencode(self.__query_params, doseq=True)
-            updated_url = urllib.parse.urlunparse(
-                (self.__pu.scheme, self.__pu.netloc, self.__pu.path, self.__pu.params, updated_query, self.__pu.fragment))
+        if self.use_fuzzing:
+            if "URL" == self.fuzzing_source:
+                updated_url = updated_url.replace("FUZZ", word)
+            else:
+                body_data[self.param] = word
         else:
-            body_data[self.param] = word
+            if self.method == "GET":
+                self.__query_params[self.param] = [word]
+                updated_query = urllib.parse.urlencode(self.__query_params, doseq=True)
+                updated_url = urllib.parse.urlunparse(
+                    (self.__pu.scheme, self.__pu.netloc, self.__pu.path, self.__pu.params, updated_query,
+                     self.__pu.fragment))
+            else:
+                body_data[self.param] = word
 
         return updated_url, body_data, None
 
     def parse_response_content(self, response):
-        if self.format == "json":
-            return response.json(), 0, 0
+        if self.format == "json" and response.text != '':
+            content = json.dumps(response.json(), indent=2)
+            return content, len(content.splitlines()), len(content.split())
 
         content = response.text
         if self.format == "html":
