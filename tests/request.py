@@ -6,16 +6,19 @@ import jobs.request
 
 base_request_data = jobs.request.RequestProgramData(
     type('testData', (), {
-        "is_verbose": False,
+        "is_info": False,
+        "is_debug": False,
+        "threads": 1,
 
         "url": "https://example.com",
         "method": "GET",
         "headers": {},
         "body": None,
         "nr": False,
-        "is_raw": False,
 
         "param": "x",
+
+        "format": "html",
 
         "tamper": "aliases",
     })

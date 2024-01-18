@@ -1,7 +1,9 @@
 import argparse
+import logging
 import queue
 import threading
 
+import colorama
 import requests
 import html2text
 import urllib.parse
@@ -17,6 +19,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
     http_options = request_parser.add_argument_group("HTTP OPTIONS")
     payload_options = request_parser.add_argument_group("PAYLOAD OPTIONS")
     general_options = request_parser.add_argument_group("GENERAL OPTIONS")
+    output_options = request_parser.add_argument_group("OUTPUT OPTIONS")
 
     # HTTP Options
     http_options.add_argument("-u", dest="url", required=True, help="Target URL")
@@ -37,13 +40,19 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
                                  help="Comma separated list of payload transformations (default=%(default)s). "
                                       f"Example values are: {', '.join(jobs.utils.tampering.tamper_known_values)}, etc.")
 
+
+    # OUTPUT Options
+    output_options.add_argument("-f", dest="format", default="html", choices=["raw", "html", "json"], help="Output format (default=%(default)s).")
+
+
     # General Options
-    general_options.add_argument("--raw", dest="is_raw", action="store_true", help="Raw HTML output")
     general_options.add_argument("--nr", "--no-redirect", action="store_true",
                                  help="Don't follow the response redirection.")
     general_options.add_argument('-t', metavar='threads', dest='threads', default=10,
                                  help='Number of threads (default=%(default)s).')
-    general_options.add_argument("-v", dest="is_verbose", action="store_true", help="Verbose output")
+    verbose = general_options.add_mutually_exclusive_group()
+    verbose.add_argument('-v', dest='is_info', action='store_true', help='Info verbosity level.')
+    verbose.add_argument('-vv', dest='is_debug', action='store_true', help='Debug verbosity level.')
 
     args = parser.parse_args()
 
@@ -61,6 +70,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
 
     # Handle shared data
     args = RequestProgramData(args)
+    logging.info(f'{args}\n')
 
     # Run
     if use_threading:
@@ -87,25 +97,19 @@ def do_job(args, word):
     try:
         response = requests.request(args.method, url, data=body_data, headers=args.headers,
                                     allow_redirects=args.allow_redirects, json=json_data)
-        content = response.text
-        if not args.is_raw:
-            content = html2text.html2text(content)
-
+        logging.debug(f'\nHTTP {url}, Body: {body_data}, JSON: {json_data}\n')
+        content, lines, words = args.parse_response_content(response)
         res_code = response.status_code
         res_size = int(response.headers.get('Content-Length') or 0)
-        lines_count = len(content.splitlines())
-        words_count = len(content.split())
 
         with print_lock:
-            print(f'{word:<25} [Status: {res_code}, Size: {res_size}, Words: {words_count}, Lines: {lines_count}]')
-
-            if args.is_verbose:
-                print("\nResponse Headers:")
-                print(response.headers)
-                print("\nResponse Content:")
-                print(content.replace("\n\n", "\n"))
+            print(colorama.Fore.GREEN + '[+] ' + colorama.Style.BRIGHT, end="")
+            print(f'{word:<25} [Status: {res_code}, Size: {res_size}, Words: {words}, Lines: {lines}]\x1b[0m')
+            print(colorama.Fore.RESET)
+            logging.info(f'\nResponse Headers: \n\n{response.headers}')
+            logging.info(f'\nResponse Content: \n\n{content}')
     except Exception as e:
-        print(f'[X] {e}')
+        logging.error(f'[ERROR] {e}')
 
 
 class RequestProgramData(impl.core.HttpProgramData):
@@ -114,6 +118,7 @@ class RequestProgramData(impl.core.HttpProgramData):
 
         self.param = args.param
         self.tamper = jobs.utils.tampering.TamperingHandler(args.tamper)
+        self.format = args.format
 
         if self.method == "GET":
             self.__pu = urllib.parse.urlparse(self.url)
@@ -134,6 +139,17 @@ class RequestProgramData(impl.core.HttpProgramData):
             body_data[self.param] = word
 
         return updated_url, body_data, None
+
+    def parse_response_content(self, response):
+        if self.format == "json":
+            return response.json(), 0, 0
+        elif self.format == "html":
+            content = response.text
+            content = html2text.html2text(content)
+            content = content.replace("\n\n", "\n")
+            return content, 0, 0
+
+        return response.text.replace("\n\n", "\n"), 0, 0
 
     def __str__(self):
         return f"{self.__class__.__name__}(" \

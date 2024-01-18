@@ -1,11 +1,24 @@
+import logging
+
+import colorama
+
+
 class BaseProgramData:
     def __init__(self, args):
-        self.is_verbose = args.is_verbose
         self.threads = args.threads
+        if args.is_info:
+            self.verbosity = logging.INFO
+        elif args.is_debug:
+            self.verbosity = logging.DEBUG
+        else:
+            self.verbosity = logging.WARNING
+
+        logging.basicConfig(level=self.verbosity, format='%(message)s')
+        colorama.init()
 
     def __str__(self):
-        return f"Verbose={self.is_verbose}, " \
-               f"Threads={self.threads}" \
+        return f"Verbose={logging.getLevelName(self.verbosity)}, " \
+               f"Threads={self.threads}"
 
 
 class HttpProgramData(BaseProgramData):
@@ -34,7 +47,6 @@ class HttpProgramData(BaseProgramData):
             self.body = {}
 
         self.allow_redirects = not args.nr
-        self.is_raw = args.is_raw
 
     def __str__(self):
         return f"{super().__str__()}, " \
@@ -42,5 +54,4 @@ class HttpProgramData(BaseProgramData):
                f"Method={self.method}, " \
                f"Headers={self.headers}, " \
                f"Body={self.body}, " \
-               f"Is Raw={self.is_raw}, " \
                f"Follow Redirects={self.allow_redirects}"
