@@ -46,6 +46,7 @@ class HttpProgramData(BaseProgramData):
         else:
             self.body = {}
 
+        self.ssl_verify = args.ssl_verify
         self.allow_redirects = not args.nr
 
     def __str__(self):

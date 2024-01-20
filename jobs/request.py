@@ -52,6 +52,8 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
 
 
     # General Options
+    general_options.add_argument('-k', dest='ssl_verify', default=True, action='store_false',
+                              help='Do not verify SSL certificates.')
     general_options.add_argument("--nr", "--no-redirect", action="store_true",
                                  help="Don't follow the response redirection.")
     general_options.add_argument('-t', metavar='threads', dest='threads', default=10,

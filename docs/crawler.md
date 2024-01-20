@@ -21,4 +21,3 @@ Roadmap
 * [ ] Test it on sqlmap HTB final assessment
 * [ ] Add custom filtering options + pretty header
 * [ ] Add custom crawling options
-* [ ] Use Burp/ZAP exclude list
