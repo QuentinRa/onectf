@@ -15,7 +15,8 @@ set_lock = threading.Lock()
 def run(parser: argparse.ArgumentParser, crawl_parser: argparse.ArgumentParser):
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    crawl_parser.add_argument('-u', dest='url', help='The target website URL.', required=True)
+    crawl_parser.add_argument('-u', dest='url', help='The target website URL.')
+    crawl_parser.add_argument('-L', dest='endpoints', default=None, help='Load gobuster output list of endpoints.')
     crawl_parser.add_argument('-t', metavar='threads', dest='threads', default=10, help='Number of threads (default=%(default)s).')
     crawl_parser.add_argument('-o', metavar='output', dest='output_file', help='Write the output to a file.')
     crawl_parser.add_argument('-k', dest='ssl_verify', default=True, action='store_false', help='Do not verify SSL certificates.')
@@ -68,6 +69,14 @@ class CrawlerProgramData(impl.core.HttpProgramData):
             '.*(css|woff|woff2|ttf|js|png|jpg|gif|jpeg|svg|mp4|mp3|webm|webp|ico)$')
 
         self.print_comments = args.print_comments
+
+        # Load known endpoints
+        if args.endpoints:
+            base = self.url if self.url.endswith('/') else self.url + '/'
+            with open(args.endpoints, 'r') as f:
+                for raw_endpoint in f.readlines():
+                    raw_endpoint = raw_endpoint.split()[0]
+                    self.add_to_set(base + raw_endpoint[1:])
 
     def add_to_set(self, url):
         if not url.startswith(self.url):

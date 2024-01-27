@@ -49,4 +49,5 @@ $ onectf request -u 'URL' -v -X POST -p 'uid' -w uids -f html
 $ onectf request -u 'URL' -v -X GET -p 'param' -w uids -f html --tamper base64
 $ onectf request -u 'URL/FUZZ' -v -X GET --fuzz -w uids -f json
 $ onectf request -u 'URL' -v -X PUT --json -I request.json
+$ onectf request -u 'URL' -v -X POST --raw -I request.xml
 ```
