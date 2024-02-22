@@ -8,11 +8,13 @@ tamper_known_values = ['aliases', 'data_base64', 'php_octal', 'space2tab', 'url'
 
 class TamperingHandler:
     def __init__(self, tamper_list):
-        if tamper_list == "":
-            return
-        operations = tamper_list.split(',')
         self.invoke = []
         self.__tamper_list = tamper_list
+
+        if tamper_list == "":
+            return
+
+        operations = tamper_list.split(',')
 
         for operation in operations:
             operation = "_" + operation
@@ -29,7 +31,10 @@ class TamperingHandler:
         return word
 
     def _space2tab(self, word):
-        return word.replace(' ', '<tab>')
+        return word.replace(' ', '\u0009')
+
+    def _ifs(self, word):
+        return word.replace(' ', '${IFS}')
 
     def _url(self, word):
         return urllib.parse.quote(word)

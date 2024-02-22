@@ -106,6 +106,7 @@ def run(parser : argparse.ArgumentParser, uffuf_parser : argparse.ArgumentParser
 
     impl.worker.start_threads(execute_worker_task, args, args.words_queue)
 
+
 def execute_worker_task(args):
     """Worker function to consume links from the queue."""
     while True:
