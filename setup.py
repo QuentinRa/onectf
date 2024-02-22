@@ -15,7 +15,8 @@ setuptools.setup(
         "pyfiglet<=1.0.2",
         "requests<=2.31.0",
         "soupsieve<=2.5",
-        "urllib3<=2.1.0"
+        "urllib3<=2.1.0",
+        "dnspython<=2.6.1",
     ],
     entry_points={
         'console_scripts': [

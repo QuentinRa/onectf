@@ -13,6 +13,7 @@ def main():
 
     commands_parser = parser.add_subparsers(title='module', dest='module', required=True)
     command_crawl = commands_parser.add_parser('crawl', help='Crawl a website using link between pages.')
+    command_axfr = commands_parser.add_parser('axfr', help='Explore a DNS using AXFR.')
     command_host = commands_parser.add_parser('hosts', help='Add or update IP and domain in /etc/hosts')
     command_fav = commands_parser.add_parser('fav', help='Get your favorite commands')
     command_request = commands_parser.add_parser('request', help="CLI Request Encoder")
@@ -27,6 +28,9 @@ def main():
     if module == 'crawl':
         import jobs.crawl
         jobs.crawl.run(parser, command_crawl)
+    if module == 'axfr':
+        import jobs.axfr
+        jobs.axfr.run(parser, command_axfr)
     elif module == 'hosts':
         import jobs.hosts
         jobs.hosts.run(parser, command_host)
