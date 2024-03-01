@@ -44,7 +44,6 @@ class UffufProgramData(impl.core.HttpProgramData):
         args.is_info = True
         args.is_debug = False
         args.method = 'POST'
-        args.nr = False
         super().__init__(args)
 
         self.param = args.param
@@ -140,6 +139,7 @@ def run(parser : argparse.ArgumentParser, uffuf_parser : argparse.ArgumentParser
     general_options.add_argument("-t", dest="threads", type=int, default=10, help="Number of concurrent threads (default: %(default)s)")
     general_options.add_argument("-v", dest="is_verbose", action="store_true", help="Verbose output")
     general_options.add_argument("-f", dest="format", default="html", choices=["raw", "html"], help="Output format (default=%(default)s).")
+    general_options.add_argument("--nr", "--no-redirect", action="store_true", help="Don't follow the response redirection.")
 
     # Matcher Options
     matcher_options.add_argument("-mc", metavar="mc", default=default_status_codes, help="Match HTTP status codes, or 'all' for everything (default: %(default)s)")
@@ -182,6 +182,7 @@ def print_uffuf_header(args : UffufProgramData):
             Wordlist       ::=  {args.wordlist}
             Threads        ::=  {args.threads}
             Header(s)      ::=  {args.headers}
+            Cookie(s)      ::=  {args.cookies}
             File           ::=  (name: {args.filename}, type: {args.filetype}, path: {args.file})""")
 
     for filter in [args.matcher, args.filter]:
@@ -227,8 +228,8 @@ def do_job(args : UffufProgramData, word):
 
     logging.debug(f'[Testing Payload For {word}] ', files)
     try:
-        response = requests.post(args.url, data=args.body, files=files, headers=args.headers,
-                                 verify=args.ssl_verify, allow_redirects=args.allow_redirects)
+        response = requests.post(args.url, data=args.body, headers=args.headers, files=files,
+                                 cookies=args.cookies, verify=args.ssl_verify, allow_redirects=args.allow_redirects)
 
         content, lines, words, res_size = args.parse_response_content(response)
         res_code = response.status_code

@@ -37,12 +37,18 @@ class HttpProgramData(BaseProgramData):
         self.method = args.method
 
         self.headers = {}
+        self.cookies = {}
         for header in args.headers or []:
             parts = header.split(":")
-            self.headers[parts[0].strip()] = parts[1].strip()
+            header_name = parts[0].strip()
+            if header_name == "Cookie":
+                parts = parts[1].strip().split("=")
+                self.cookies[parts[0].strip()] = parts[1].strip()
+            else:
+                self.headers[parts[0].strip()] = parts[1].strip()
 
         if args.body:
-            self.body = {k: v for k, v in [pair.split('=') for pair in args.data.split('&')]}
+            self.body = {k: v for k, v in [pair.split('=') for pair in args.body.split('&')]}
         else:
             self.body = {}
 
@@ -54,5 +60,6 @@ class HttpProgramData(BaseProgramData):
                f"URL={self.url}, " \
                f"Method={self.method}, " \
                f"Headers={self.headers}, " \
+               f"Cookies={self.cookies}, " \
                f"Body={self.body}, " \
                f"Follow Redirects={self.allow_redirects}"
