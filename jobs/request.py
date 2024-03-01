@@ -105,7 +105,7 @@ def do_job(args, word):
     word = word.replace('\n', '\\n')
     try:
         response = requests.request(args.method, url, data=body_data, headers=headers,
-                                    allow_redirects=args.allow_redirects, json=json_data)
+                                    allow_redirects=args.allow_redirects, json=json_data, verify=args.ssl_verify)
         logging.debug(f'\nHTTP {url}, Body: {body_data}, JSON: {json_data}\n')
         content, lines, words = args.parse_response_content(response)
         res_code = response.status_code
