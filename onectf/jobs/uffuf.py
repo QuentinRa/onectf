@@ -12,9 +12,8 @@ import pyfiglet
 import requests
 import urllib3
 
-import impl.core
-import impl.worker
-import jobs.utils.filtering
+from onectf import impl
+import onectf.impl.worker
 
 print_lock = threading.Lock()
 
@@ -38,7 +37,7 @@ mimetypes_to_bytes = {
 }
 
 
-class UffufProgramData(impl.core.HttpProgramData):
+class UffufProgramData(onectf.impl.core.HttpProgramData):
     def __init__(self, args):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         args.method = 'POST'
@@ -93,8 +92,8 @@ class UffufProgramData(impl.core.HttpProgramData):
             print(f'Error: The keyword "{self.keyword}" was not found in either the filename or the filetype.')
             sys.exit(2)
 
-        self.matcher = jobs.utils.filtering.FilteringHandler(False, args.mc, args.ml, args.mr, args.ms, args.mw)
-        self.filter = jobs.utils.filtering.FilteringHandler(True, args.fc, args.fl, args.fr, args.fs, args.fw)
+        self.matcher = onectf.jobs.utils.filtering.FilteringHandler(False, args.mc, args.ml, args.mr, args.ms, args.mw)
+        self.filter = onectf.jobs.utils.filtering.FilteringHandler(True, args.fc, args.fl, args.fr, args.fs, args.fw)
 
         # Create a queue to hold words from the wordlist
         self.words_queue = queue.Queue()
@@ -167,7 +166,7 @@ def run(parser : argparse.ArgumentParser, uffuf_parser : argparse.ArgumentParser
 
     print_uffuf_header(args)
 
-    impl.worker.start_threads(execute_worker_task, args, args.words_queue)
+    onectf.impl.worker.start_threads(execute_worker_task, args, args.words_queue)
 
 
 def print_uffuf_header(args : UffufProgramData):

@@ -2,10 +2,6 @@
 import argparse
 import sys
 
-import impl.constants
-import impl.core
-import impl.worker
-
 
 def main():
     parser = argparse.ArgumentParser(description="My Program")
@@ -26,23 +22,23 @@ def main():
     print(f"onectf v{impl.constants.version}\n")
 
     if module == 'crawl':
-        import jobs.crawl
-        jobs.crawl.run(parser, command_crawl)
+        from onectf import jobs
+        onectf.jobs.crawl.run(parser, command_crawl)
     if module == 'axfr':
-        import jobs.axfr
-        jobs.axfr.run(parser, command_axfr)
+        from onectf import jobs
+        onectf.jobs.axfr.run(parser, command_axfr)
     elif module == 'hosts':
-        import jobs.hosts
-        jobs.hosts.run(parser, command_host)
+        from onectf import jobs
+        onectf.jobs.hosts.run(parser, command_host)
     elif module == 'fav':
-        import jobs.fav
-        jobs.fav.run(parser, command_fav)
+        import onectf.jobs.fav
+        onectf.jobs.fav.run(parser, command_fav)
     elif module == 'request':
-        import jobs.request
-        jobs.request.run(parser, command_request)
+        import onectf.jobs.request
+        onectf.jobs.request.run(parser, command_request)
     elif module == 'uffuf':
-        import jobs.uffuf
-        jobs.uffuf.run(parser, command_uffuf)
+        from onectf import jobs
+        onectf.jobs.uffuf.run(parser, command_uffuf)
     else:
         raise Exception("Command not supported.")
 

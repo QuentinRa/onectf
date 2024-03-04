@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-import jobs.request
+import onectf.jobs.request
 
 base_test_data = {
     "is_info": False,
@@ -24,7 +24,7 @@ base_test_data = {
     "tamper": "aliases",
 }
 
-base_request_data = jobs.request.RequestProgramData(
+base_request_data = onectf.jobs.request.RequestProgramData(
     type('testData', (), base_test_data)
 )
 
@@ -50,7 +50,7 @@ class TestRequest(unittest.TestCase):
         test_data = {}
         test_data.update(base_test_data)
         test_data.update({'headers': ['Cookie: X=Z; Y=FUZZ'], 'param': None, 'use_fuzzing': True })
-        request_data = jobs.request.RequestProgramData(
+        request_data = onectf.jobs.request.RequestProgramData(
             type('testData', (), test_data)
         )
         (_, _, headers, _, _) = request_data.inject_word('value')
@@ -60,7 +60,7 @@ class TestRequest(unittest.TestCase):
         test_data = {}
         test_data.update(base_test_data)
         test_data.update({'headers': ['Cookie: X=Z; Y=Z'] })
-        request_data = jobs.request.RequestProgramData(
+        request_data = onectf.jobs.request.RequestProgramData(
             type('testData', (), test_data)
         )
         self.assertEqual(request_data.headers, {'Cookie': 'X=Z; Y=Z'})

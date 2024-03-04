@@ -1,7 +1,5 @@
 import unittest
 
-import jobs.hosts
-
 base_args = type('args', (), {'ip': '10.10.10.10', 'domain': ['a.test'], 'dry_run': True, 'no_merge': True,
                               'host_file': 'data/hosts/a', })
 
@@ -19,7 +17,7 @@ class TestHosts(unittest.TestCase):
             'no_merge': no_merge,
             'host_file': host_file,
         })
-        lines = jobs.hosts.do_job(args)
+        lines = onectf.jobs.hosts.do_job(args)
         self.assertEqual(output, lines)
 
     def test_empty_file(self):

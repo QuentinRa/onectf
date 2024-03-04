@@ -2,8 +2,8 @@ import argparse
 import queue
 import dns.resolver
 
-import impl.core
-import impl.worker
+from onectf import impl
+import onectf.impl.worker
 
 
 def run(parser: argparse.ArgumentParser, axfr_parser: argparse.ArgumentParser):
@@ -20,7 +20,7 @@ def run(parser: argparse.ArgumentParser, axfr_parser: argparse.ArgumentParser):
     args = DNSProgramData(args)
 
     try:
-        impl.worker.start_threads(execute_worker_task, args, args.words_queue)
+        onectf.impl.worker.start_threads(execute_worker_task, args, args.words_queue)
     except KeyboardInterrupt:
         print()
 
@@ -34,7 +34,7 @@ def execute_worker_task(args):
         do_job(args, word)
         args.words_queue.task_done()
 
-class DNSProgramData(impl.core.BaseProgramData):
+class DNSProgramData(onectf.impl.core.BaseProgramData):
     def __init__(self, args):
         args.is_info = True
         args.is_debug = False

@@ -10,9 +10,8 @@ import requests
 import html2text
 import urllib.parse
 
-import jobs.utils.tampering
-import impl.core
-import impl.worker
+from onectf import impl
+import onectf.impl.worker
 
 print_lock = threading.Lock()
 
@@ -44,7 +43,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
     # PAYLOAD Options
     payload_options.add_argument("--tamper", dest="tamper", default="aliases",
                                  help="Comma separated list of payload transformations (default=%(default)s). "
-                                      f"Example values are: {', '.join(jobs.utils.tampering.tamper_known_values)}, etc.")
+                                      f"Example values are: {', '.join(onectf.jobs.utils.tampering.tamper_known_values)}, etc.")
 
 
     # OUTPUT Options
@@ -85,7 +84,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
         args.words = queue.Queue()
         for word in payload:
             args.words.put(word.strip())
-        impl.worker.start_threads(execute_worker_task, args, args.words)
+        onectf.impl.worker.start_threads(execute_worker_task, args, args.words)
     else:
         do_job(args, payload[0])
 
@@ -122,11 +121,11 @@ def do_job(args, word):
         logging.error(f'[ERROR] {e}')
 
 
-class RequestProgramData(impl.core.HttpProgramData):
+class RequestProgramData(onectf.impl.core.HttpProgramData):
     def __init__(self, args):
         super().__init__(args)
 
-        self.tamper = jobs.utils.tampering.TamperingHandler(args.tamper)
+        self.tamper = onectf.jobs.utils.tampering.TamperingHandler(args.tamper)
         self.format = args.format
 
         self.use_fuzzing = args.use_fuzzing

@@ -6,8 +6,8 @@ import urllib.parse
 import bs4
 import requests
 import urllib3
-import impl.core
-import impl.worker
+from onectf import impl
+import onectf.impl.worker
 
 set_lock = threading.Lock()
 
@@ -28,7 +28,7 @@ def run(parser: argparse.ArgumentParser, crawl_parser: argparse.ArgumentParser):
     args = CrawlerProgramData(args)
 
     try:
-        impl.worker.start_threads(execute_worker_task, args, args.links)
+        onectf.impl.worker.start_threads(execute_worker_task, args, args.links)
     except KeyboardInterrupt:
         print()
     finally:
@@ -45,7 +45,7 @@ def execute_worker_task(args):
         args.links.task_done()
 
 
-class CrawlerProgramData(impl.core.HttpProgramData):
+class CrawlerProgramData(onectf.impl.core.HttpProgramData):
     def __init__(self, args):
         args.is_info = True
         args.is_debug = False
