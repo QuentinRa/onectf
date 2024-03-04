@@ -10,8 +10,10 @@ import requests
 import html2text
 import urllib.parse
 
-from onectf import impl
+import onectf.impl.core
 import onectf.impl.worker
+import onectf.jobs.utils.filtering
+import onectf.jobs.utils.tampering
 
 print_lock = threading.Lock()
 
@@ -45,14 +47,12 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
                                  help="Comma separated list of payload transformations (default=%(default)s). "
                                       f"Example values are: {', '.join(onectf.jobs.utils.tampering.tamper_known_values)}, etc.")
 
-
     # OUTPUT Options
     output_options.add_argument("-f", dest="format", default="html", choices=["raw", "html", "json"], help="Output format (default=%(default)s).")
 
-
     # General Options
     general_options.add_argument('-k', dest='ssl_verify', default=True, action='store_false',
-                              help='Do not verify SSL certificates.')
+                                 help='Do not verify SSL certificates.')
     general_options.add_argument("--nr", "--no-redirect", action="store_true",
                                  help="Don't follow the response redirection.")
     general_options.add_argument('-t', metavar='threads', dest='threads', default=10,

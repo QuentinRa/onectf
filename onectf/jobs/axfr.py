@@ -2,7 +2,7 @@ import argparse
 import queue
 import dns.resolver
 
-from onectf import impl
+import onectf.impl.core
 import onectf.impl.worker
 
 
@@ -34,6 +34,7 @@ def execute_worker_task(args):
         do_job(args, word)
         args.words_queue.task_done()
 
+
 class DNSProgramData(onectf.impl.core.BaseProgramData):
     def __init__(self, args):
         args.is_info = True
@@ -61,5 +62,5 @@ def do_job(args, word):
             response = dns.query.xfr(nameserver, target)
             dns.zone.from_xfr(response)
             print(f'[*] Found valid subdomain {target} using {nameserver}')
-        except dns.xfr.TransferError as e:
+        except dns.xfr.TransferError:
             pass

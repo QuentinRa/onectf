@@ -4,8 +4,9 @@ import sys
 
 
 def main():
-    parser = argparse.ArgumentParser(description="My Program")
-    parser.add_argument("-V", "--version", action="version", version=impl.constants.version, help="Show version information")
+    import onectf.impl.constants
+    parser = argparse.ArgumentParser(description="onectf - CTFs utilities")
+    parser.add_argument("-V", "--version", action="version", version=onectf.impl.constants.version, help="Show version information")
 
     commands_parser = parser.add_subparsers(title='module', dest='module', required=True)
     command_crawl = commands_parser.add_parser('crawl', help='Crawl a website using link between pages.')
@@ -19,16 +20,16 @@ def main():
     if module is None or module in ["-V", "-h"]:
         parser.parse_known_args()
 
-    print(f"onectf v{impl.constants.version}\n")
+    print(f"onectf v{onectf.impl.constants.version}\n")
 
     if module == 'crawl':
-        from onectf import jobs
+        import onectf.jobs.crawl
         onectf.jobs.crawl.run(parser, command_crawl)
     if module == 'axfr':
-        from onectf import jobs
+        import onectf.jobs.axfr
         onectf.jobs.axfr.run(parser, command_axfr)
     elif module == 'hosts':
-        from onectf import jobs
+        import onectf.jobs.hosts
         onectf.jobs.hosts.run(parser, command_host)
     elif module == 'fav':
         import onectf.jobs.fav
@@ -37,7 +38,7 @@ def main():
         import onectf.jobs.request
         onectf.jobs.request.run(parser, command_request)
     elif module == 'uffuf':
-        from onectf import jobs
+        import onectf.jobs.uffuf
         onectf.jobs.uffuf.run(parser, command_uffuf)
     else:
         raise Exception("Command not supported.")

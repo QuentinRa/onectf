@@ -1,7 +1,7 @@
 import argparse
 
 hard_coded_commands = {
-    "nmap" : [
+    "nmap": [
         "sudo nmap -Pn -p- -min-rate 5000 ${IP} -v -sV",
         "sudo nmap -Pn -sU -p- --min-rate 10000 ${IP} -v -sV",
         "rustscan -a ${IP} -- -sVC"
@@ -20,7 +20,7 @@ hard_coded_commands = {
 }
 
 
-def run(parser : argparse.ArgumentParser, fav_parser : argparse.ArgumentParser):
+def run(parser: argparse.ArgumentParser, fav_parser: argparse.ArgumentParser):
     fav_parser.add_argument('category', help='The category of the command to fetch.', choices=['nmap', 'gobuster', 'smb'])
     fav_parser.add_argument('-u', metavar='target', dest='target', help='The IP or domain name to target.')
     args = parser.parse_args()

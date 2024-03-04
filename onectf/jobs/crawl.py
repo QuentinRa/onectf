@@ -6,7 +6,8 @@ import urllib.parse
 import bs4
 import requests
 import urllib3
-from onectf import impl
+
+import onectf.impl.core
 import onectf.impl.worker
 
 set_lock = threading.Lock()
@@ -130,7 +131,7 @@ def do_job(args: CrawlerProgramData, url):
         args.add_to_set(truncated_file_url(absolute_url))
 
     # Tags using onclick
-    for tag in  soup.find_all(attrs={"onclick": True}):
+    for tag in soup.find_all(attrs={"onclick": True}):
         onclick_value = tag['onclick']
         if 'location.href' in onclick_value:
             start_index = onclick_value.find("'") + 1

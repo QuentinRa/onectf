@@ -12,8 +12,9 @@ import pyfiglet
 import requests
 import urllib3
 
-from onectf import impl
+import onectf.impl.core
 import onectf.impl.worker
+import onectf.jobs.utils.filtering
 
 print_lock = threading.Lock()
 
@@ -114,7 +115,7 @@ class UffufProgramData(onectf.impl.core.HttpProgramData):
         return content, lines_count, words_count, res_size
 
 
-def run(parser : argparse.ArgumentParser, uffuf_parser : argparse.ArgumentParser):
+def run(parser: argparse.ArgumentParser, uffuf_parser: argparse.ArgumentParser):
     http_options = uffuf_parser.add_argument_group("HTTP OPTIONS")
     general_options = uffuf_parser.add_argument_group("GENERAL OPTIONS")
     matcher_options = uffuf_parser.add_argument_group("MATCHER OPTIONS")
@@ -155,7 +156,7 @@ def run(parser : argparse.ArgumentParser, uffuf_parser : argparse.ArgumentParser
     filter_options.add_argument("-fw", metavar="fw", help="Filter by amount of words in response")
 
     # Input Options
-    wordlist = input_options.add_mutually_exclusive_group(required = True)
+    wordlist = input_options.add_mutually_exclusive_group(required=True)
     wordlist.add_argument("-w", dest="wordlist", help="Wordlist file path and (optional) keyword separated by colon. eg. '/path/to/wordlist:KEYWORD'")
     wordlist.add_argument("-W", dest="word", help="Word used instead of a wordlist.")
 
@@ -169,7 +170,7 @@ def run(parser : argparse.ArgumentParser, uffuf_parser : argparse.ArgumentParser
     onectf.impl.worker.start_threads(execute_worker_task, args, args.words_queue)
 
 
-def print_uffuf_header(args : UffufProgramData):
+def print_uffuf_header(args: UffufProgramData):
     print(f"""
         ________________________________________________
 
@@ -184,15 +185,15 @@ def print_uffuf_header(args : UffufProgramData):
             Cookie(s)      ::=  {args.cookies}
             File           ::=  (name: {args.filename}, type: {args.filetype}, path: {args.file})""")
 
-    for filter in [args.matcher, args.filter]:
-        if filter.status_code is not None and filter.status_code != default_status_codes:
-            print(f'        {filter.name:<14} ::=  Response status: {filter.status_code}')
-        if filter.line_count is not None:
-            print(f'        {filter.name:<14} ::=  Response lines: {filter.line_count}')
-        if filter.word_count is not None:
-            print(f'        {filter.name:<14} ::=  Response words: {filter.word_count}')
-        if filter.size is not None:
-            print(f'        {filter.name:<14} ::=  Response size: {filter.size}')
+    for my_filter in [args.matcher, args.filter]:
+        if my_filter.status_code is not None and my_filter.status_code != default_status_codes:
+            print(f'        {my_filter.name:<14} ::=  Response status: {my_filter.status_code}')
+        if my_filter.line_count is not None:
+            print(f'        {my_filter.name:<14} ::=  Response lines: {my_filter.line_count}')
+        if my_filter.word_count is not None:
+            print(f'        {my_filter.name:<14} ::=  Response words: {my_filter.word_count}')
+        if my_filter.size is not None:
+            print(f'        {my_filter.name:<14} ::=  Response size: {my_filter.size}')
 
     print(f"""
         ________________________________________________
@@ -209,7 +210,7 @@ def execute_worker_task(args):
         args.words_queue.task_done()
 
 
-def do_job(args : UffufProgramData, word):
+def do_job(args: UffufProgramData, word):
     contents = args.file_content
     filetype = args.filetype.replace(args.keyword, word)
     if args.should_spoof:
@@ -251,4 +252,3 @@ def do_job(args : UffufProgramData, word):
             logging.info(f'\nResponse Content: \n\n{content}')
     except Exception as e:
         print(f'{word:<25} [Error {e}]')
-

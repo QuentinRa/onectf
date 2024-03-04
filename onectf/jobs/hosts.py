@@ -2,7 +2,7 @@ import argparse
 import os
 
 
-def run(parser : argparse.ArgumentParser, host_parser : argparse.ArgumentParser):
+def run(parser: argparse.ArgumentParser, host_parser: argparse.ArgumentParser):
     host_parser.add_argument('ip', help='IP address to add/update')
     host_parser.add_argument('domain', nargs='+', help='Domain(s) to add or update.')
     host_parser.add_argument('--skip', dest='no_merge', action='store_true', help='Don\'t merge lines by IP after insertion.')
@@ -95,4 +95,3 @@ def do_job(args):
             print(f"You need to use 'sudo' to edit {output_file} ({e}).\n")
 
     return final_lines
-
