@@ -41,8 +41,6 @@ mimetypes_to_bytes = {
 class UffufProgramData(impl.core.HttpProgramData):
     def __init__(self, args):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        args.is_info = True
-        args.is_debug = False
         args.method = 'POST'
         super().__init__(args)
 
@@ -137,7 +135,9 @@ def run(parser : argparse.ArgumentParser, uffuf_parser : argparse.ArgumentParser
     # General Options
     general_options.add_argument('-k', dest='ssl_verify', default=True, action='store_false', help='Do not verify SSL certificates.')
     general_options.add_argument("-t", dest="threads", type=int, default=10, help="Number of concurrent threads (default: %(default)s)")
-    general_options.add_argument("-v", dest="is_verbose", action="store_true", help="Verbose output")
+    verbose = general_options.add_mutually_exclusive_group()
+    verbose.add_argument('-v', dest='is_info', action='store_true', help='Info verbosity level.')
+    verbose.add_argument('-vv', dest='is_debug', action='store_true', help='Debug verbosity level.')
     general_options.add_argument("-f", dest="format", default="html", choices=["raw", "html"], help="Output format (default=%(default)s).")
     general_options.add_argument("--nr", "--no-redirect", action="store_true", help="Don't follow the response redirection.")
 
@@ -217,7 +217,9 @@ def do_job(args : UffufProgramData, word):
         if filetype in mimetypes_to_bytes:
             contents = mimetypes_to_bytes[filetype] + contents
         else:
-            print(f'[WARN] Cannot spoof file: MIME type {filetype} is not supported.')
+            print(colorama.Fore.YELLOW + '[+] ' + colorama.Style.BRIGHT, end="")
+            print(f'[WARN] Cannot spoof file: MIME type {filetype} is not supported (add it to mimetypes_to_bytes!).')
+            print(colorama.Fore.RESET)
 
     files = {
         args.param: (

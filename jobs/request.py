@@ -101,8 +101,9 @@ def execute_worker_task(args):
 
 
 def do_job(args, word):
-    (url, headers, body_data, json_data) = args.inject_word(word)
+    (word, url, headers, body_data, json_data) = args.inject_word(word)
     word = word.replace('\n', '\\n')
+    word = word.replace('\r', '\\r')
     try:
         response = requests.request(args.method, url, data=body_data, headers=headers,
                                     allow_redirects=args.allow_redirects, json=json_data, verify=args.ssl_verify)
@@ -178,6 +179,7 @@ class RequestProgramData(impl.core.HttpProgramData):
             if "URL" == self.fuzzing_source:
                 updated_url = updated_url.replace("FUZZ", word)
             elif "BODY" == self.fuzzing_source:
+                word = urllib.parse.unquote(word)
                 body_data[self.param] = word
             else:
                 headers = self.headers
@@ -185,6 +187,7 @@ class RequestProgramData(impl.core.HttpProgramData):
         elif self.use_json:
             json_data = json.loads(word)
         elif self.use_raw:
+            word = urllib.parse.unquote(word)
             body_data = word
         else:
             if self.method == "GET":
@@ -194,9 +197,10 @@ class RequestProgramData(impl.core.HttpProgramData):
                     (self.__pu.scheme, self.__pu.netloc, self.__pu.path, self.__pu.params, updated_query,
                      self.__pu.fragment))
             else:
+                word = urllib.parse.unquote(word)
                 body_data[self.param] = word
 
-        return updated_url, headers, body_data, json_data
+        return word, updated_url, headers, body_data, json_data
 
     def parse_response_content(self, response):
         if self.format == "json" and response.text != '':

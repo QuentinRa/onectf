@@ -44,7 +44,8 @@ class TamperingHandler:
                      .replace("<q>", "\u0027") \
                      .replace("<m>", "-") \
                      .replace("<er>", "2>&1") \
-                     .replace("<cr>", "%0d%0a")
+                     .replace("<cr>", "%0d%0a") \
+                     .replace("<rc>", "%0a%0d")
 
     def _data_base64(self, word):
         return f'data://text/plain;base64,{self._base64(word)}'

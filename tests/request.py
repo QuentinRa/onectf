@@ -35,7 +35,7 @@ class TestRequest(unittest.TestCase):
         request_data.url = 'https://example.com'
         request_data.method = 'GET'
         request_data.param = 'param'
-        (url, _, _, _) = request_data.inject_word('value')
+        (_, url, _, _, _) = request_data.inject_word('value')
         self.assertEqual(url, 'https://example.com?param=value')
 
     def test_post_request(self):
@@ -43,7 +43,7 @@ class TestRequest(unittest.TestCase):
         request_data.url = 'https://example'
         request_data.method = 'POST'
         request_data.param = 'param'
-        (_, _, post_data, _) = request_data.inject_word('value')
+        (_, _, _, post_data, _) = request_data.inject_word('value')
         self.assertEqual({'param': 'value'}, post_data)
 
     def test_fuzzing_header(self):
@@ -53,7 +53,7 @@ class TestRequest(unittest.TestCase):
         request_data = jobs.request.RequestProgramData(
             type('testData', (), test_data)
         )
-        (_, headers, _, _) = request_data.inject_word('value')
+        (_, _, headers, _, _) = request_data.inject_word('value')
         self.assertEqual(request_data.headers, {'Cookie': 'X=Z; Y=value'})
 
     def test_multiple_headers(self):
