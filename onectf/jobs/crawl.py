@@ -4,6 +4,7 @@ import re
 import threading
 import urllib.parse
 import bs4
+import colorama
 import requests
 import urllib3
 
@@ -113,10 +114,14 @@ def do_job(args: CrawlerProgramData, url):
         with set_lock:
             # we need to explore it
             if url not in args.found_urls:
+                print(colorama.Fore.GREEN + '[+] ' + colorama.Style.BRIGHT, end="")
                 print(f'[*] Crawl {root} => Crawl {url}')
+                print(colorama.Fore.RESET)
                 args.found_urls.add(url)
             else:
+                print(colorama.Fore.YELLOW + '[+] ' + colorama.Style.BRIGHT, end="")
                 print(f'[*] Crawl {root} => Already crawled.')
+                print(colorama.Fore.RESET)
                 return
 
     soup = bs4.BeautifulSoup(response.content, 'html.parser')
@@ -141,10 +146,17 @@ def do_job(args: CrawlerProgramData, url):
 
     if args.print_comments:
         comments = soup.find_all(string=lambda text: isinstance(text, bs4.Comment))
+        has_comments = len(comments) > 0
+        if has_comments:
+            print()
+
         for comment in comments:
             comment = ' '.join(comment.split())
             if comment:
                 print(comment)
+
+        if has_comments:
+            print()
 
 
 def parse_href_link(args, root, url, href):
