@@ -93,9 +93,6 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
 
 def do_job(args: CrawlerProgramData, url):
     root = url
-    print(colorama.Fore.GREEN + '[+] ' + colorama.Style.BRIGHT, end="")
-    print(f'[*] Crawl {url}')
-    print(colorama.Fore.RESET)
 
     try:
         response = requests.get(url, data=args.body, headers=args.headers,
@@ -108,23 +105,27 @@ def do_job(args: CrawlerProgramData, url):
         return
 
     if response.status_code != 200:
-        print(colorama.Fore.RED + '[+] ' + colorama.Style.BRIGHT, end="")
+        print(colorama.Fore.RED + '[-] ' + colorama.Style.BRIGHT, end="")
         print(f'[{response.status_code}] Unable to access {url}')
         print(colorama.Fore.RESET)
         return
+    else:
+        print(colorama.Fore.GREEN + '[+] ' + colorama.Style.BRIGHT, end="")
+        print(f'Crawl {url}')
+        print(colorama.Fore.RESET)
 
     if response.url != url:
         url = response.url
         with set_lock:
             # we need to explore it
             if url not in args.found_urls:
-                print(colorama.Fore.BLUE + '[+] ' + colorama.Style.BRIGHT, end="")
-                print(f'[*] Crawl {root} => Crawl {url}')
+                print(colorama.Fore.BLUE + '[>] ' + colorama.Style.BRIGHT, end="")
+                print(f'Crawl {root} => Crawl {url}')
                 print(colorama.Fore.RESET)
                 args.found_urls.add(url)
             else:
-                print(colorama.Fore.YELLOW + '[+] ' + colorama.Style.BRIGHT, end="")
-                print(f'[*] Crawl {root} => Already crawled.')
+                print(colorama.Fore.YELLOW + '[x] ' + colorama.Style.BRIGHT, end="")
+                print(f'Crawl {root} => Already crawled.')
                 print(colorama.Fore.RESET)
                 return
 
