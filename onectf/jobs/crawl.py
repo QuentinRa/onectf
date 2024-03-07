@@ -150,16 +150,13 @@ def do_job(args: CrawlerProgramData, url):
 
     if args.print_comments:
         comments = soup.find_all(string=lambda text: isinstance(text, bs4.Comment))
-        has_comments = len(comments) > 0
-        if has_comments:
-            print()
 
         for comment in comments:
             comment = ' '.join(comment.split())
             if comment:
-                print(comment)
+                print("<!--", comment, "-->")
 
-        if has_comments:
+        if len(comments) > 0:
             print()
 
 
