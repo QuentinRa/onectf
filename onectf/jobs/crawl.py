@@ -152,7 +152,7 @@ def do_job(args: CrawlerProgramData, url):
         comments = soup.find_all(string=lambda text: isinstance(text, bs4.Comment))
 
         for comment in comments:
-            comment = ' '.join(comment.split())
+            comment = ' '.join(comment.split()).strip()
             if comment:
                 print("<!--", comment, "-->")
 
