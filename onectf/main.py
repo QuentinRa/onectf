@@ -25,7 +25,7 @@ def main():
     if module == 'crawl':
         import onectf.jobs.crawl
         onectf.jobs.crawl.run(parser, command_crawl)
-    if module == 'axfr':
+    elif module == 'axfr':
         import onectf.jobs.axfr
         onectf.jobs.axfr.run(parser, command_axfr)
     elif module == 'hosts':

@@ -16,7 +16,7 @@ set_lock = threading.Lock()
 def run(parser: argparse.ArgumentParser, crawl_parser: argparse.ArgumentParser):
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    crawl_parser.add_argument('-u', dest='url', help='The target website URL.')
+    crawl_parser.add_argument('-u', dest='url', help='The target website URL.', required=True)
     crawl_parser.add_argument('-L', dest='endpoints', default=None, help='Load gobuster output list of endpoints.')
     crawl_parser.add_argument('-t', metavar='threads', dest='threads', default=10, help='Number of threads (default=%(default)s).')
     crawl_parser.add_argument('-o', metavar='output', dest='output_file', help='Write the output to a file.')
