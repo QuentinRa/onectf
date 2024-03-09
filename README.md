@@ -7,6 +7,8 @@
 A set of CTF utilities. Mostly written for fun or to practice.
 
 ```bash
+$ sudo apt install pipx
+$ pipx ensurepath
 $ pipx install git+https://github.com/QuentinRa/onectf.git
 $ onectf -h
 ```

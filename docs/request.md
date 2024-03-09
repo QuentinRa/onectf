@@ -1,6 +1,6 @@
 # Request Encoder
 
-Request Encoder (cire) is a tool that can be used to encode requests mostly for pseudo-manual command injection exploitation. This tool was developed for training purposes.
+Request Encoder is a module that can be used to encode requests mostly for pseudo-manual command injection exploitation. This tool was developed for training purposes.
 
 ## Examples
 
