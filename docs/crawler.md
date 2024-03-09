@@ -4,8 +4,11 @@ Used to crawl a simple HTML/PHP website using links (`<a>`), images (`<img>`), s
 
 ```bash
 onectf crawl -h
-onectf crawl -u URL -o /tmp/output.txt
-onectf crawl -u URL -o /tmp/output.txt -k # ignore SSL errors
+onectf crawl -u URL
+onectf crawl [...] --pc # print HTML comments
+onectf crawl [...] -k   # ignore SSL errors
+onectf crawl [...] -L /path/to/list_of_endpoints.txt
+onectf crawl [...] -o /tmp/output.txt
 ```
 
 Tested on:

@@ -1,9 +1,20 @@
-# OneCTF
+# OneCTF - Modular CTF toolkit 
 
-A set of utilities. Mostly written for fun or to practice.
+[![GitHub](https://img.shields.io/github/license/quentinra/blog.quentinra.dev)](LICENSE)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr-closed/QuentinRa/onectf?color=%23a0)](https://github.com/QuentinRa/onectf/pulls)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/QuentinRa/onectf)](https://github.com/QuentinRa/onectf)
+
+A set of CTF utilities. Mostly written for fun or to practice.
+
+```bash
+$ pipx install git+https://github.com/QuentinRa/onectf.git
+$ onectf -h
+```
+
+The documentation for each module:
 
 * [AXFR](docs/axfr.md): find hidden subdomains vulnerable to zone transfer
-* [Crawler](docs/crawler.md): basic web crawler
-* [Hosts](docs/hosts.md): basic host file management utility
-* [Request](docs/request.md): basic request encoder
-* [uffuf](docs/uffuf.md): basic file upload fuzzer
+* [Crawler](docs/crawler.md): HTML web crawler
+* [Hosts](docs/hosts.md): host file management utility
+* [Request](docs/request.md): request encoder
+* [uffuf](docs/uffuf.md): file upload fuzzer

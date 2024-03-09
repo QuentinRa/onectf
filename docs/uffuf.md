@@ -58,7 +58,7 @@ Alternatively, we can use the `--spoof` flag:
 $ onectf uffuf -u <IP:port>/upload.php -p uploadFile -w web-extensions.txt -F webshell.php -Fn test.jpgFUZZ -Ft image/jpg -mr "File successfully uploaded" --spoof
 ```
 
-#### Missing Features
+#### Roadmap
 
 * Add an initial dummy test
 * Improve Verbose Mode
