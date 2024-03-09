@@ -2,7 +2,7 @@
 
 uffuf is a specialized tool inspired by the popular fuzzer [ffuf](https://github.com/ffuf/ffuf). It allows users to fuzz file names, content types, and other parameters, to assist in identifying vulnerabilities related to unrestricted file uploads in web applications. It's an alternative to Burp Suite or other web proxies.
 
-#### Basic Usage
+## Basic Usage
 
 * Filename Fuzzing — Bypassing Filename Checks
 
@@ -30,7 +30,7 @@ $ # --spoof is optional if the server don't check the magic number
 $ onectf uffuf -u https://example.com -p uploadFile -F myFile -w myWordlist -Ft FUZZ --spoof
 ```
 
-#### Testing
+## Testing
 
 * Blacklist some extensions (`https://academy.hackthebox.com/module/136/section/1288`)
 
@@ -58,7 +58,7 @@ Alternatively, we can use the `--spoof` flag:
 $ onectf uffuf -u <IP:port>/upload.php -p uploadFile -w web-extensions.txt -F webshell.php -Fn test.jpgFUZZ -Ft image/jpg -mr "File successfully uploaded" --spoof
 ```
 
-#### Roadmap
+## Roadmap
 
 * Add an initial dummy test
 * Improve Verbose Mode

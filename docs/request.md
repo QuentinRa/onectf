@@ -2,7 +2,7 @@
 
 Request Encoder (cire) is a tool that can be used to encode requests mostly for pseudo-manual command injection exploitation. This tool was developed for training purposes.
 
-#### Examples
+## Examples
 
 The tool accept three kind of input formats injected into `-p`:
 
@@ -62,7 +62,7 @@ $ onectf request -u 'URL' -v -X POST -p 'uid' -w uids -f html
 $ onectf request -u 'URL/FUZZ' -v -X GET --fuzz -w uids -f json
 ```
 
-#### Testing
+## Testing
 
 We can test the tool on the following practice CTF machine: `https://academy.hackthebox.com/module/109/section/1042`.
 
