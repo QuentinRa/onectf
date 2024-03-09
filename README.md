@@ -1,6 +1,6 @@
 # OneCTF - Modular CTF toolkit 
 
-[![GitHub](https://img.shields.io/github/license/quentinra/blog.quentinra.dev)](LICENSE)
+[![GitHub](https://img.shields.io/github/license/QuentinRa/onectf)](LICENSE)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr-closed/QuentinRa/onectf?color=%23a0)](https://github.com/QuentinRa/onectf/pulls)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/QuentinRa/onectf)](https://github.com/QuentinRa/onectf)
 
