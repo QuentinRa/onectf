@@ -11,6 +11,7 @@ import html2text
 import urllib.parse
 
 import onectf.impl.core
+import onectf.impl.constants
 import onectf.impl.worker
 import onectf.utils.filtering
 import onectf.utils.tampering
@@ -43,6 +44,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
     http_options.add_argument("-d", dest="body", help="Request body data.")
 
     # PAYLOAD Options
+    payload_options.add_argument("--jsonp", dest="payload", help=f"Replace '{onectf.impl.constants.injection_token}' with 'word' before sending the JSON payload.")
     payload_options.add_argument("--tamper", dest="tamper", default="aliases",
                                  help="Comma separated list of payload transformations (default=%(default)s). "
                                       f"Example values are: {', '.join(onectf.utils.tampering.tamper_known_values)}, etc.")
@@ -131,6 +133,8 @@ class RequestProgramData(onectf.impl.core.HttpProgramData):
         self.use_fuzzing = args.use_fuzzing
         self.use_json = args.use_json
         self.use_raw = args.use_raw
+
+        self.payload = args.payload
         if self.use_fuzzing:
             self.param = 'FUZZ'
             self.fuzzing_source = None
@@ -150,21 +154,28 @@ class RequestProgramData(onectf.impl.core.HttpProgramData):
         elif self.use_json:
             self.param = '<none>'
             if self.method == 'GET':
-                print(f"[ERROR] Cannot use '-X GET' with '--json'.")
+                logging.error(f"[ERROR] Cannot use '-X GET' with '--json'.")
+                sys.exit(2)
+
+            if self.payload is None or onectf.impl.constants.injection_token not in self.payload:
+                logging.error(f"Payload must contains the placeholder '{onectf.impl.constants.injection_token}', e.g., {{\"name\": \"{onectf.impl.constants.injection_token}\"}}.")
                 sys.exit(2)
         elif self.use_raw:
             self.param = '<none>'
             if self.method == 'GET':
-                print(f"[ERROR] Cannot use '-X GET' with '--raw'.")
+                logging.error(f"[ERROR] Cannot use '-X GET' with '--raw'.")
                 sys.exit(2)
             if self.body != {}:
-                print(f"[ERROR] Cannot use '-d' with '--raw'.")
+                logging.error(f"[ERROR] Cannot use '-d' with '--raw'.")
                 sys.exit(2)
         else:
             self.param = args.param
             if self.method == "GET":
                 self.__pu = urllib.parse.urlparse(self.url)
                 self.__query_params = urllib.parse.parse_qs(self.__pu.query)
+
+        if not self.use_json and self.payload is not None:
+            logging.warning(f'[WARNING] Ignored --payload as it is only supported with --json.')
 
     def inject_word(self, word):
         word = self.tamper.apply(word)
@@ -184,7 +195,11 @@ class RequestProgramData(onectf.impl.core.HttpProgramData):
                 headers = self.headers
                 headers[self.fuzzing_source] = headers[self.fuzzing_source].replace("FUZZ", word)
         elif self.use_json:
-            json_data = json.loads(word)
+            if self.payload is None:
+                json_data = json.loads(word)
+            else:
+                payload = self.payload.replace(onectf.impl.constants.injection_token, word)
+                json_data = json.loads(payload)
         elif self.use_raw:
             word = urllib.parse.unquote(word)
             body_data = word
