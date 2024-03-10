@@ -12,8 +12,8 @@ import urllib.parse
 
 import onectf.impl.core
 import onectf.impl.worker
-import onectf.jobs.utils.filtering
-import onectf.jobs.utils.tampering
+import onectf.utils.filtering
+import onectf.utils.tampering
 
 print_lock = threading.Lock()
 
@@ -45,7 +45,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
     # PAYLOAD Options
     payload_options.add_argument("--tamper", dest="tamper", default="aliases",
                                  help="Comma separated list of payload transformations (default=%(default)s). "
-                                      f"Example values are: {', '.join(onectf.jobs.utils.tampering.tamper_known_values)}, etc.")
+                                      f"Example values are: {', '.join(onectf.utils.tampering.tamper_known_values)}, etc.")
 
     # OUTPUT Options
     output_options.add_argument("-f", dest="format", default="html", choices=["raw", "html", "json"], help="Output format (default=%(default)s).")
@@ -125,7 +125,7 @@ class RequestProgramData(onectf.impl.core.HttpProgramData):
     def __init__(self, args):
         super().__init__(args)
 
-        self.tamper = onectf.jobs.utils.tampering.TamperingHandler(args.tamper)
+        self.tamper = onectf.utils.tampering.TamperingHandler(args.tamper)
         self.format = args.format
 
         self.use_fuzzing = args.use_fuzzing

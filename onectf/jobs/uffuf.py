@@ -13,16 +13,15 @@ import requests
 import urllib3
 
 import onectf.impl.core
+import onectf.impl.constants
 import onectf.impl.worker
-import onectf.jobs.utils.filtering
+import onectf.utils.filtering
 
 print_lock = threading.Lock()
 
 uffuf_version = "0.3.2-unstable-dev"
 
 keyword_auto = "auto"
-
-default_status_codes = "200-299,301,302,307,401,403,405,500"
 
 # Add more as needed
 # https://en.wikipedia.org/wiki/List_of_file_signatures
@@ -93,8 +92,8 @@ class UffufProgramData(onectf.impl.core.HttpProgramData):
             print(f'Error: The keyword "{self.keyword}" was not found in either the filename or the filetype.')
             sys.exit(2)
 
-        self.matcher = onectf.jobs.utils.filtering.FilteringHandler(False, args.mc, args.ml, args.mr, args.ms, args.mw)
-        self.filter = onectf.jobs.utils.filtering.FilteringHandler(True, args.fc, args.fl, args.fr, args.fs, args.fw)
+        self.matcher = onectf.utils.filtering.FilteringHandler(False, args.mc, args.ml, args.mr, args.ms, args.mw)
+        self.filter = onectf.utils.filtering.FilteringHandler(True, args.fc, args.fl, args.fr, args.fs, args.fw)
 
         # Create a queue to hold words from the wordlist
         self.words_queue = queue.Queue()
@@ -142,7 +141,7 @@ def run(parser: argparse.ArgumentParser, uffuf_parser: argparse.ArgumentParser):
     general_options.add_argument("--nr", "--no-redirect", action="store_true", help="Don't follow the response redirection.")
 
     # Matcher Options
-    matcher_options.add_argument("-mc", metavar="mc", default=default_status_codes, help="Match HTTP status codes, or 'all' for everything (default: %(default)s)")
+    matcher_options.add_argument("-mc", metavar="mc", default=onectf.impl.constants.default_status_codes, help="Match HTTP status codes, or 'all' for everything (default: %(default)s)")
     matcher_options.add_argument("-ml", metavar="ml", help="Match amount of lines in response")
     matcher_options.add_argument("-mr", metavar="mr", help="Match regexp")
     matcher_options.add_argument("-ms", metavar="ms", help="Match HTTP response size")
@@ -186,7 +185,7 @@ def print_uffuf_header(args: UffufProgramData):
             File           ::=  (name: {args.filename}, type: {args.filetype}, path: {args.file})""")
 
     for my_filter in [args.matcher, args.filter]:
-        if my_filter.status_code is not None and my_filter.status_code != default_status_codes:
+        if my_filter.status_code is not None and my_filter.status_code != onectf.impl.constants.default_status_codes:
             print(f'        {my_filter.name:<14} ::=  Response status: {my_filter.status_code}')
         if my_filter.line_count is not None:
             print(f'        {my_filter.name:<14} ::=  Response lines: {my_filter.line_count}')
