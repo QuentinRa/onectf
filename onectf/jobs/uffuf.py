@@ -15,6 +15,7 @@ import urllib3
 import onectf.impl.core
 import onectf.impl.constants
 import onectf.impl.worker
+import onectf.jobs.utils.parser_utils
 import onectf.utils.filtering
 
 print_lock = threading.Lock()
@@ -37,7 +38,7 @@ mimetypes_to_bytes = {
 }
 
 
-class UffufProgramData(onectf.impl.core.HttpProgramData):
+class UffufProgramData(onectf.impl.core.HttpProgramDataWithFilters):
     def __init__(self, args):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         args.method = 'POST'
@@ -92,9 +93,6 @@ class UffufProgramData(onectf.impl.core.HttpProgramData):
             print(f'Error: The keyword "{self.keyword}" was not found in either the filename or the filetype.')
             sys.exit(2)
 
-        self.matcher = onectf.utils.filtering.FilteringHandler(False, args.mc, args.ml, args.mr, args.ms, args.mw)
-        self.filter = onectf.utils.filtering.FilteringHandler(True, args.fc, args.fl, args.fr, args.fs, args.fw)
-
         # Create a queue to hold words from the wordlist
         self.words_queue = queue.Queue()
         words = [word.strip() for word in args.words]
@@ -117,8 +115,6 @@ class UffufProgramData(onectf.impl.core.HttpProgramData):
 def run(parser: argparse.ArgumentParser, uffuf_parser: argparse.ArgumentParser):
     http_options = uffuf_parser.add_argument_group("HTTP OPTIONS")
     general_options = uffuf_parser.add_argument_group("GENERAL OPTIONS")
-    matcher_options = uffuf_parser.add_argument_group("MATCHER OPTIONS")
-    filter_options = uffuf_parser.add_argument_group("FILTER OPTIONS")
     input_options = uffuf_parser.add_argument_group("INPUT OPTIONS")
 
     # HTTP Options
@@ -140,19 +136,8 @@ def run(parser: argparse.ArgumentParser, uffuf_parser: argparse.ArgumentParser):
     general_options.add_argument("-f", dest="format", default="html", choices=["raw", "html"], help="Output format (default=%(default)s).")
     general_options.add_argument("--nr", "--no-redirect", action="store_true", help="Don't follow the response redirection.")
 
-    # Matcher Options
-    matcher_options.add_argument("-mc", metavar="mc", default=onectf.impl.constants.default_status_codes, help="Match HTTP status codes, or 'all' for everything (default: %(default)s)")
-    matcher_options.add_argument("-ml", metavar="ml", help="Match amount of lines in response")
-    matcher_options.add_argument("-mr", metavar="mr", help="Match regexp")
-    matcher_options.add_argument("-ms", metavar="ms", help="Match HTTP response size")
-    matcher_options.add_argument("-mw", metavar="mw", help="Match amount of words in response")
-
-    # Filter Options
-    filter_options.add_argument("-fc", metavar="fc", help="Filter HTTP status codes from response")
-    filter_options.add_argument("-fl", metavar="fl", help="Filter by amount of lines in response")
-    filter_options.add_argument("-fr", metavar="fr", help="Filter regexp")
-    filter_options.add_argument("-fs", metavar="fs", help="Filter HTTP response size")
-    filter_options.add_argument("-fw", metavar="fw", help="Filter by amount of words in response")
+    # Matcher and Filter Options
+    onectf.jobs.utils.parser_utils.add_filter_options(uffuf_parser)
 
     # Input Options
     wordlist = input_options.add_mutually_exclusive_group(required=True)

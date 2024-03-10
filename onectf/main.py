@@ -41,7 +41,7 @@ def main():
         import onectf.jobs.uffuf
         onectf.jobs.uffuf.run(parser, command_uffuf)
     else:
-        raise Exception("Command not supported.")
+        raise Exception("No such module:", module)
 
 
 if __name__ == "__main__":

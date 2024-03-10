@@ -1,6 +1,7 @@
 import logging
-
 import colorama
+
+import onectf.utils.filtering
 
 
 class BaseProgramData:
@@ -62,4 +63,12 @@ class HttpProgramData(BaseProgramData):
                f"Headers={self.headers}, " \
                f"Cookies={self.cookies}, " \
                f"Body={self.body}, " \
+               f"SSL Verify={self.ssl_verify}, " \
                f"Follow Redirects={self.allow_redirects}"
+
+
+class HttpProgramDataWithFilters(HttpProgramData):
+    def __init__(self, args):
+        super().__init__(args)
+        self.matcher = onectf.utils.filtering.FilteringHandler(False, args.mc, args.ml, args.mr, args.ms, args.mw)
+        self.filter = onectf.utils.filtering.FilteringHandler(True, args.fc, args.fl, args.fr, args.fs, args.fw)
