@@ -16,6 +16,7 @@ onectf crawl [...] --pc # print HTML comments
 onectf crawl [...] -k   # ignore SSL errors
 onectf crawl [...] -L /path/to/list_of_endpoints.txt
 onectf crawl [...] -o /tmp/output.txt
+onectf crawl [...] --external # also list external URLs
 ```
 
 ## Testing
@@ -27,7 +28,6 @@ The script was tested on:
 
 ## Roadmap
 
-* [ ] Add a add in output but don't crawl external websites? Also, add an option to see all URLs not just suspicious ones?
 * [ ] Add support for verbose mode
 * [ ] Add support for the sitemap.xml
 * [ ] Add support for robots.txt

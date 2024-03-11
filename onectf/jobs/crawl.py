@@ -30,6 +30,7 @@ def run(parser: argparse.ArgumentParser, crawl_parser: argparse.ArgumentParser):
     general_options.add_argument('-t', metavar='threads', dest='threads', default=10, help='Number of threads (default=%(default)s).')
     onectf.jobs.utils.parser_utils.add_verbose_options(general_options)
 
+    output_options.add_argument('--external', dest='external', action='store_true', help='Show external URLs in the list of URLs.')
     output_options.add_argument('--pc', '--print-comments', dest='print_comments', action='store_true', help='Display comments (experimental).')
     output_options.add_argument('-o', metavar='output', dest='output_file', help='Write the output to a file.')
 
@@ -73,6 +74,7 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
         # Patch the URL to remove any file
         self.url = truncated_file_url(self.url)
         self.add_to_set(self.url)
+        self.external = args.external
 
         # we don't want to crawl these pages
         self.crawl_url_filter_match = re.compile(
@@ -91,6 +93,10 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
 
     def add_to_set(self, url):
         if not url.startswith(self.url):
+            # Index external URLs if requested
+            if self.external:
+                with set_lock:
+                    self.found_urls.add(url)
             return
 
         with set_lock:
