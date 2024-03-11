@@ -4,6 +4,7 @@ import queue
 import re
 import threading
 import urllib.parse
+import urllib.robotparser
 import bs4
 import colorama
 import requests
@@ -73,6 +74,7 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
 
         # Patch the URL to remove any file
         self.url = truncated_file_url(self.url)
+        self.url = self.url if self.url.endswith('/') else self.url + '/'
         self.add_to_set(self.url)
         self.external = args.external
 
@@ -85,11 +87,39 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
 
         # Load known endpoints
         if args.endpoints:
-            base = self.url if self.url.endswith('/') else self.url + '/'
             with open(args.endpoints, 'r') as f:
                 for raw_endpoint in f.readlines():
                     raw_endpoint = raw_endpoint.split()[0]
-                    self.add_to_set(base + raw_endpoint[1:])
+                    self.add_to_set(self.url + raw_endpoint[1:])
+
+        # Load robots.txt
+        try:
+            f = requests.get(self.url + 'robots.txt')
+        except Exception:
+            pass
+        else:
+            self.found_urls.add(self.url + 'robots.txt')
+            logging.info(
+                colorama.Fore.BLUE + '[+] ' + colorama.Style.BRIGHT + \
+                f'Found robots.txt file.' + \
+                colorama.Fore.RESET
+            )
+            logging.debug(
+                colorama.Fore.BLUE + '[+] ' + colorama.Style.BRIGHT + \
+                f'robots.txt:' + f.text + \
+                colorama.Fore.RESET
+            )
+            # try to find interesting endpoints
+            pattern = r'\/[a-zA-Z0-9_\-/]+'
+            for raw_endpoint in re.findall(pattern, f.text):
+                if raw_endpoint and raw_endpoint != '/':
+                    target = self.url + raw_endpoint.strip()[1:]
+                    self.add_to_set(target)
+                    logging.info(
+                        colorama.Fore.BLUE + '[+] ' + colorama.Style.BRIGHT + \
+                        f'Added {target} from robots.txt.' + \
+                        colorama.Fore.RESET
+                    )
 
     def add_to_set(self, url):
         if not url.startswith(self.url):
