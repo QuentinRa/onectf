@@ -16,7 +16,7 @@ $ onectf -h
 The documentation for each module:
 
 * [AXFR](docs/axfr.md): find hidden subdomains vulnerable to zone transfer
-* [Crawl](docs/crawl): HTML web crawler
+* [Crawl](docs/crawl.md): HTML web crawler
 * [Hosts](docs/hosts.md): host file management utility
 * [Request](docs/request.md): request encoder
 * [uffuf](docs/uffuf.md): file upload fuzzer
