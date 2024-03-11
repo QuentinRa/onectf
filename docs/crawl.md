@@ -6,6 +6,7 @@ Used to crawl a simple HTML/PHP website using:
 * images (`<img>`), 
 * scripts (`<script>`),
 * javascript (`location.href`)
+* robots file (`/robots.txt`)
 
 You can use the following flags:
 
@@ -25,11 +26,10 @@ The script was tested on:
 
 * [THM mustacchio](https://tryhackme.com/room/mustacchio) <small>(links, images, scripts)</small>
 * [HTB Cap](https://app.hackthebox.com/machines/Cap) <small>(location.href, anchors, redirections)</small>
+* [THM GamingServer](https://tryhackme.com/room/gamingserver)  <small>(weird robots.txt)</small>
 
 ## Roadmap
 
-* [ ] Add support for verbose mode
 * [ ] Add support for the sitemap.xml
-* [ ] Add support for robots.txt
 * [ ] Add custom filtering options + pretty header
 * [ ] Add custom crawling options

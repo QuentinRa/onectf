@@ -3,7 +3,7 @@ import hashlib
 import sys
 import urllib.parse
 
-tamper_known_values = ['aliases', 'data_base64', 'php_octal', 'space2tab', 'url']
+tamper_known_values = ['aliases', 'base64', 'data_base64', 'php_octal', 'space2tab', 'url']
 
 
 class TamperingHandler:

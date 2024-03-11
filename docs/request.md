@@ -24,6 +24,13 @@ $ onectf request -u 'URL' -v -X PUT --json -I request.json
 $ onectf request -u 'URL' -v -X POST --raw -I request.xml
 ```
 
+For JSON request, you can process to some extend complex payloads:
+
+```bash
+$ onectf request -u 'URL' -v -X POST --json --pjson '{"name":"xxx", "file":"$_INJECT_$"}' -I webshell.php --tamper data_base64
+$ onectf request  -u 'URL' -v -X POST --json --jsonp '{"id":"xxx", "body":"data:application/x-php;base64,$_INJECT_$"}' -I web_shell.php --tamper base64
+```
+
 Aliases are automatically enabled by default. You can use:
 
 * `<q>` instead of `'` (quote)
