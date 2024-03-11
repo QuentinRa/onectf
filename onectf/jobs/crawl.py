@@ -79,6 +79,7 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
             '.*(css|woff|woff2|ttf|js|png|jpg|gif|jpeg|svg|mp4|mp3|webm|webp|ico)$')
 
         self.print_comments = args.print_comments
+        self.comments = set()
 
         # Load known endpoints
         if args.endpoints:
@@ -165,17 +166,14 @@ def do_job(args: CrawlerProgramData, url):
             href = onclick_value[start_index:end_index]
             parse_href_link(args, root, url, href)
 
-    # fixme: do it nicely
     if args.print_comments:
         comments = soup.find_all(string=lambda text: isinstance(text, bs4.Comment))
 
         for comment in comments:
             comment = ' '.join(comment.split()).strip()
             if comment:
-                print("<!--", comment, "-->")
-
-        if len(comments) > 0:
-            print()
+                with set_lock:
+                    args.comments.add("<!-- " + comment + " -->")
 
 
 def parse_href_link(args, root, url, href):
@@ -211,15 +209,37 @@ def truncate_link_url(url):
 
 
 def done(args):
-    urls = args.found_urls
-    # pattern = re.compile('.*(/|html|php|js|css)$')
-    # print(f'[*] Found {len(urls)} URLs.')
-    # print()
-    # sorted_urls = sorted(urls, key=url_extension)
-    # for url in sorted_urls:
-    #     if not pattern.match(url) and "?" not in url:
-    #         print(f'[*] Found suspicious URL {url}')
-    #
-    # if args.output_file is not None:
-    #     with open(args.output_file, 'w') as file:
-    #         file.writelines('\n'.join(sorted_urls))
+    urls = sorted(args.found_urls, key=url_extension)
+    comments = args.comments
+
+    # Format Data As String
+    url_list = ''
+    comments_list = '\n'.join(comments)
+
+    # Highlight filters
+    pattern = re.compile('.*(/|html|php|js|css)$')
+
+    print(f'[*] Found {len(urls)} URLs.\n')
+
+    print("Found the following URLs:\n")
+    for url in urls:
+        if not pattern.match(url) and "?" not in url:
+            print(colorama.Fore.GREEN + '[!] ' + colorama.Style.BRIGHT, end="")
+            print(f'Found suspicious URL {url}')
+            print(colorama.Fore.RESET, end="")
+            url_list += '[!] ' + url + '\n'
+        else:
+            print(f'[*] Found URL {url}')
+            url_list += '[*] ' + url + '\n'
+
+    if args.print_comments:
+        print("\nFound the following comments:\n")
+        print(comments_list)
+        print()
+
+    if args.output_file is not None:
+        with open(args.output_file, 'w') as file:
+            file.writelines(
+                "URLS\n\n" + url_list + "\n" +\
+                "COMMENTS\n\n" + comments_list + "\n"
+            )
