@@ -19,3 +19,9 @@ def add_filter_options(parser: argparse.ArgumentParser):
     filter_options.add_argument("-fr", metavar="fr", help="Filter regexp")
     filter_options.add_argument("-fs", metavar="fs", help="Filter HTTP response size")
     filter_options.add_argument("-fw", metavar="fw", help="Filter by amount of words in response")
+
+
+def add_verbose_options(parser: argparse.ArgumentParser|object):
+    verbose = parser.add_mutually_exclusive_group()
+    verbose.add_argument('-v', dest='is_info', action='store_true', help='Info verbosity level.')
+    verbose.add_argument('-vv', dest='is_debug', action='store_true', help='Debug verbosity level.')

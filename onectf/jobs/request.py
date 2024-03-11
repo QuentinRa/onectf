@@ -13,6 +13,7 @@ import urllib.parse
 import onectf.impl.core
 import onectf.impl.constants
 import onectf.impl.worker
+import onectf.jobs.utils.parser_utils
 import onectf.utils.filtering
 import onectf.utils.tampering
 
@@ -39,8 +40,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
     injecter.add_argument("-w", dest="inject_wordlist", help="Unencoded wordlist of values to inject in parameter.")
 
     http_options.add_argument("-X", dest="method", default="GET", help="HTTP Method (default=%(default)s)")
-    http_options.add_argument("-H", metavar="header", dest="headers", action="append",
-                              help="Header 'Name: Value', separated by colon. Multiple -H flags are accepted.")
+    http_options.add_argument("-H", metavar="header", dest="headers", action="append", help="Header 'Name: Value', separated by colon. Multiple -H flags are accepted.")
     http_options.add_argument("-d", dest="body", help="Request body data.")
 
     # PAYLOAD Options
@@ -59,9 +59,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
                                  help="Don't follow the response redirection.")
     general_options.add_argument('-t', metavar='threads', dest='threads', default=10,
                                  help='Number of threads (default=%(default)s).')
-    verbose = general_options.add_mutually_exclusive_group()
-    verbose.add_argument('-v', dest='is_info', action='store_true', help='Info verbosity level.')
-    verbose.add_argument('-vv', dest='is_debug', action='store_true', help='Debug verbosity level.')
+    onectf.jobs.utils.parser_utils.add_verbose_options(general_options)
 
     args = parser.parse_args()
 

@@ -1,4 +1,5 @@
 import argparse
+import logging
 import queue
 import re
 import threading
@@ -10,24 +11,33 @@ import urllib3
 
 import onectf.impl.core
 import onectf.impl.worker
+import onectf.jobs.utils.parser_utils
 
 set_lock = threading.Lock()
 
 
 def run(parser: argparse.ArgumentParser, crawl_parser: argparse.ArgumentParser):
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    http_options = crawl_parser.add_argument_group("HTTP OPTIONS")
+    general_options = crawl_parser.add_argument_group("GENERAL OPTIONS")
+    output_options = crawl_parser.add_argument_group("OUTPUT OPTIONS")
 
-    crawl_parser.add_argument('-u', dest='url', help='The target website URL.', required=True)
-    crawl_parser.add_argument('-L', dest='endpoints', default=None, help='Load gobuster output list of endpoints.')
-    crawl_parser.add_argument('-t', metavar='threads', dest='threads', default=10, help='Number of threads (default=%(default)s).')
-    crawl_parser.add_argument('-o', metavar='output', dest='output_file', help='Write the output to a file.')
-    crawl_parser.add_argument('-k', dest='ssl_verify', default=True, action='store_false', help='Do not verify SSL certificates.')
-    crawl_parser.add_argument("-H", metavar="header", dest="headers", action="append", help="Header 'Name: Value', separated by colon. Multiple -H flags are accepted.")
-    crawl_parser.add_argument('--pc', '--print-comments', dest='print_comments', action='store_true', help='Display comments (experimental).')
+    http_options.add_argument('-u', dest='url', help='The target website URL.', required=True)
+    http_options.add_argument('-L', dest='endpoints', default=None, help='Load gobuster output list of endpoints.')
+    http_options.add_argument('-k', dest='ssl_verify', default=True, action='store_false', help='Do not verify SSL certificates.')
+    http_options.add_argument("-H", metavar="header", dest="headers", action="append", help="Header 'Name: Value', separated by colon. Multiple -H flags are accepted.")
+
+    general_options.add_argument('-t', metavar='threads', dest='threads', default=10, help='Number of threads (default=%(default)s).')
+    onectf.jobs.utils.parser_utils.add_verbose_options(general_options)
+
+    output_options.add_argument('--pc', '--print-comments', dest='print_comments', action='store_true', help='Display comments (experimental).')
+    output_options.add_argument('-o', metavar='output', dest='output_file', help='Write the output to a file.')
+
     args = parser.parse_args()
 
     # patch args
     args = CrawlerProgramData(args)
+    logging.debug(args)
 
     try:
         onectf.impl.worker.start_threads(execute_worker_task, args, args.links)
@@ -49,8 +59,6 @@ def execute_worker_task(args):
 
 class CrawlerProgramData(onectf.impl.core.HttpProgramData):
     def __init__(self, args):
-        args.is_info = True
-        args.is_debug = False
         args.method = 'GET'
         args.body = None
         args.nr = False
@@ -105,28 +113,36 @@ def do_job(args: CrawlerProgramData, url):
         return
 
     if response.status_code != 200:
-        print(colorama.Fore.RED + '[-] ' + colorama.Style.BRIGHT, end="")
-        print(f'[{response.status_code}] Unable to access {url}')
-        print(colorama.Fore.RESET)
+        logging.info(
+            colorama.Fore.RED + '[-] ' + colorama.Style.BRIGHT + \
+            f'[{response.status_code}] Unable to access {url}' + \
+            colorama.Fore.RESET
+        )
         return
     else:
-        print(colorama.Fore.GREEN + '[+] ' + colorama.Style.BRIGHT, end="")
-        print(f'Crawl {url}')
-        print(colorama.Fore.RESET)
+        logging.info(
+            colorama.Fore.GREEN + '[+] ' + colorama.Style.BRIGHT + \
+            f'Crawl {url}' + \
+            colorama.Fore.RESET
+        )
 
     if response.url != url:
         url = response.url
         with set_lock:
             # we need to explore it
             if url not in args.found_urls:
-                print(colorama.Fore.BLUE + '[>] ' + colorama.Style.BRIGHT, end="")
-                print(f'Crawl {root} => Crawl {url}')
-                print(colorama.Fore.RESET)
+                logging.info(
+                    colorama.Fore.BLUE + '[>] ' + colorama.Style.BRIGHT + \
+                    f'Crawl {root} => Crawl {url}' + \
+                    colorama.Fore.RESET
+                )
                 args.found_urls.add(url)
             else:
-                print(colorama.Fore.YELLOW + '[x] ' + colorama.Style.BRIGHT, end="")
-                print(f'Crawl {root} => Already crawled.')
-                print(colorama.Fore.RESET)
+                logging.info(
+                    colorama.Fore.YELLOW + '[x] ' + colorama.Style.BRIGHT + \
+                    f'Crawl {root} => Already crawled.' + \
+                    colorama.Fore.RESET
+                )
                 return
 
     soup = bs4.BeautifulSoup(response.content, 'html.parser')
@@ -149,6 +165,7 @@ def do_job(args: CrawlerProgramData, url):
             href = onclick_value[start_index:end_index]
             parse_href_link(args, root, url, href)
 
+    # fixme: do it nicely
     if args.print_comments:
         comments = soup.find_all(string=lambda text: isinstance(text, bs4.Comment))
 
@@ -195,14 +212,14 @@ def truncate_link_url(url):
 
 def done(args):
     urls = args.found_urls
-    pattern = re.compile('.*(/|html|php|js|css)$')
-    print(f'[*] Found {len(urls)} URLs.')
-    print()
-    sorted_urls = sorted(urls, key=url_extension)
-    for url in sorted_urls:
-        if not pattern.match(url) and "?" not in url:
-            print(f'[*] Found suspicious URL {url}')
-
-    if args.output_file is not None:
-        with open(args.output_file, 'w') as file:
-            file.writelines('\n'.join(sorted_urls))
+    # pattern = re.compile('.*(/|html|php|js|css)$')
+    # print(f'[*] Found {len(urls)} URLs.')
+    # print()
+    # sorted_urls = sorted(urls, key=url_extension)
+    # for url in sorted_urls:
+    #     if not pattern.match(url) and "?" not in url:
+    #         print(f'[*] Found suspicious URL {url}')
+    #
+    # if args.output_file is not None:
+    #     with open(args.output_file, 'w') as file:
+    #         file.writelines('\n'.join(sorted_urls))
