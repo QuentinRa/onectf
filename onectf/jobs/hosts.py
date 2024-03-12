@@ -44,10 +44,12 @@ def do_job(args):
                             continue
                     final_domains.append(domain)
 
+                # Delete the line
                 if len(final_domains) == 0:
                     lines[i] = ""
                     continue
 
+                # Correct the line
                 lines[i] = f"{ip}\t{' '.join(final_domains)}"
 
                 if len(domains) == len(found_domains):
