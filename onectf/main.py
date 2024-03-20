@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import logging
 import sys
 
 
@@ -41,7 +42,8 @@ def main():
         import onectf.jobs.uffuf
         onectf.jobs.uffuf.run(parser, command_uffuf)
     else:
-        raise Exception("No such module:", module)
+        logging.error(f"No such module: {module}.")
+        sys.exit(2)
 
 
 if __name__ == "__main__":
