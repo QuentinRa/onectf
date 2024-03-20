@@ -42,7 +42,7 @@ def main():
         import onectf.jobs.uffuf
         onectf.jobs.uffuf.run(parser, command_uffuf)
     else:
-        logging.error(f"No such module: {module}.")
+        print(f"No such module: {module}.")
         sys.exit(2)
 
 
