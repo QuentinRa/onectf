@@ -1,0 +1,13 @@
+{
+    "_include": "http.json",
+
+    "param": "x",
+    "use_fuzzing": false,
+    "use_json": false,
+    "payload": null,
+    "use_raw": false,
+
+    "format": "html",
+
+    "tamper": "aliases"
+}

@@ -1,0 +1,12 @@
+{
+    "_include": "base.json",
+
+    "url": "https://example.com",
+    "method": "GET",
+
+    "headers": {},
+    "body": null,
+
+    "ssl_verify": false,
+    "nr": false
+}

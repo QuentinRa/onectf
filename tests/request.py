@@ -1,31 +1,11 @@
 import copy
 import unittest
 
+import utils.testargs
 import onectf.jobs.request
 
-base_test_data = {
-    "is_info": False,
-    "is_debug": False,
-    "threads": 1,
 
-    "url": "https://example.com",
-    "method": "GET",
-    "headers": {},
-    "body": None,
-    "nr": False,
-    "ssl_verify": False,
-
-    "param": "x",
-    "use_fuzzing": False,
-    "use_json": False,
-    "payload": None,
-    "use_raw": False,
-
-    "format": "html",
-
-    "tamper": "aliases",
-}
-
+base_test_data = utils.testargs.load_args('request.json')
 base_request_data = onectf.jobs.request.RequestProgramData(
     type('testData', (), base_test_data)
 )
