@@ -1,4 +1,5 @@
 import argparse
+import copy
 import logging
 import queue
 import re
@@ -135,6 +136,16 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
                 self.found_urls.add(url)
                 self.links.put(url)
 
+    def __deepcopy__(self, memo):
+        # Create a new instance of the class.
+        cls = self.__class__
+        new_obj = cls.__new__(cls)
+        for key, value in self.__dict__.items():
+            if key != 'links':
+                setattr(new_obj, key, copy.deepcopy(value, memo))
+        new_obj.links = queue.Queue()
+        return new_obj
+
 
 def do_job(args: CrawlerProgramData, url):
     root = url
@@ -142,6 +153,7 @@ def do_job(args: CrawlerProgramData, url):
     try:
         response = requests.get(url, data=args.body, headers=args.headers,
                                 verify=args.ssl_verify, allow_redirects=args.allow_redirects)
+        print(response.text)
     except Exception as e:
         print(f'[ERROR] Could not send request, reason={e}')
         # clear queue
