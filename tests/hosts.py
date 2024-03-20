@@ -1,5 +1,7 @@
 import unittest
 
+import onectf.jobs.hosts
+
 base_args = type('args', (), {'ip': '10.10.10.10', 'domain': ['a.test'], 'dry_run': True, 'no_merge': True,
                               'host_file': 'data/hosts/a', })
 

@@ -138,10 +138,11 @@ class RequestProgramData(onectf.impl.core.HttpProgramData):
             elif "FUZZ" in self.body:
                 self.fuzzing_source = 'BODY'
             else:
-                for k, v in self.headers.items():
-                    if 'FUZZ' in v:
-                        self.fuzzing_source = k
-                        break
+                for items_dict in [self.headers, self.cookies]:
+                    for k, v in items_dict.items():
+                        if 'FUZZ' in v:
+                            self.fuzzing_source = k
+                            break
 
             if self.fuzzing_source is None:
                 logging.error(f'[ERROR] FUZZ keyword not found (checked URL, Body, Headers).')
@@ -187,7 +188,7 @@ class RequestProgramData(onectf.impl.core.HttpProgramData):
                 word = urllib.parse.unquote(word)
                 body_data[self.param] = word
             else:
-                headers = self.headers
+                headers = self.headers if self.fuzzing_source in self.headers else self.cookies
                 headers[self.fuzzing_source] = headers[self.fuzzing_source].replace("FUZZ", word)
         elif self.use_json:
             if self.payload is None:

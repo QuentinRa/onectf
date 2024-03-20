@@ -44,7 +44,7 @@ class HttpProgramData(BaseProgramData):
             header_name = parts[0].strip()
             if header_name == "Cookie":
                 parts = parts[1].strip().split("=")
-                self.cookies[parts[0].strip()] = parts[1].strip()
+                self.cookies[parts[0].strip()] = '='.join(parts[1:]).strip()
             else:
                 self.headers[parts[0].strip()] = parts[1].strip()
 

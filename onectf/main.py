@@ -8,7 +8,7 @@ def main():
     parser = argparse.ArgumentParser(description="onectf - CTFs utilities")
     parser.add_argument("-V", "--version", action="version", version=onectf.impl.constants.version, help="Show version information")
 
-    commands_parser = parser.add_subparsers(title='module', dest='module', required=True)
+    commands_parser = parser.add_subparsers(dest='module', required=True)
     command_crawl = commands_parser.add_parser('crawl', help='Crawl a website using link between pages.')
     command_axfr = commands_parser.add_parser('axfr', help='Explore a DNS using AXFR.')
     command_host = commands_parser.add_parser('hosts', help='Add or update IP and domain in /etc/hosts')

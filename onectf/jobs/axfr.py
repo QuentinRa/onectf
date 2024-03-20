@@ -12,13 +12,7 @@ def run(parser: argparse.ArgumentParser, axfr_parser: argparse.ArgumentParser):
     axfr_parser.add_argument('-t', metavar='threads', dest='threads', default=10, help='Number of threads (default=%(default)s).')
     axfr_parser.add_argument('-r', dest='resolver', help='IP address of the DNS server queried.', required=True)
     args = parser.parse_args()
-
-    # Patch missing arguments
-    args.is_info = True
-
-    # patch args
     args = DNSProgramData(args)
-
     try:
         onectf.impl.worker.start_threads(execute_worker_task, args, args.words_queue)
     except KeyboardInterrupt:

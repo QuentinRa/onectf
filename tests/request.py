@@ -13,10 +13,12 @@ base_test_data = {
     "headers": {},
     "body": None,
     "nr": False,
+    "ssl_verify": False,
 
     "param": "x",
     "use_fuzzing": False,
     "use_json": False,
+    "payload": None,
     "use_raw": False,
 
     "format": "html",
@@ -36,7 +38,7 @@ class TestRequest(unittest.TestCase):
         request_data.method = 'GET'
         request_data.param = 'param'
         (_, url, _, _, _) = request_data.inject_word('value')
-        self.assertEqual(url, 'https://example.com?param=value')
+        self.assertEqual('https://example.com?param=value', url)
 
     def test_post_request(self):
         request_data = copy.deepcopy(base_request_data)
@@ -54,7 +56,7 @@ class TestRequest(unittest.TestCase):
             type('testData', (), test_data)
         )
         (_, _, headers, _, _) = request_data.inject_word('value')
-        self.assertEqual(request_data.headers, {'Cookie': 'X=Z; Y=value'})
+        self.assertEqual({'X': 'Z; Y=value'}, request_data.cookies)
 
     def test_multiple_headers(self):
         test_data = {}
@@ -63,7 +65,7 @@ class TestRequest(unittest.TestCase):
         request_data = onectf.jobs.request.RequestProgramData(
             type('testData', (), test_data)
         )
-        self.assertEqual(request_data.headers, {'Cookie': 'X=Z; Y=Z'})
+        self.assertEqual({'X': 'Z; Y=Z'}, request_data.cookies)
 
 
 if __name__ == '__main__':
