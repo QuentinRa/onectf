@@ -97,11 +97,11 @@ def execute_worker_task(args):
 
 
 def do_job(args, word):
-    (word, url, headers, body_data, json_data) = args.inject_word(word)
+    (word, url, headers, cookies, body_data, json_data) = args.inject_word(word)
     word = word.replace('\n', '\\n')
     word = word.replace('\r', '\\r')
     try:
-        response = requests.request(args.method, url, data=body_data, headers=headers,
+        response = requests.request(args.method, url, data=body_data, headers=headers, cookies=cookies,
                                     allow_redirects=args.allow_redirects, json=json_data, verify=args.ssl_verify)
         logging.debug(f'\nHTTP {url}, Body: {body_data}, JSON: {json_data}\n')
         content, lines, words = args.parse_response_content(response)
@@ -135,13 +135,12 @@ class RequestProgramData(onectf.impl.core.HttpProgramData):
             self.fuzzing_source = None
             if "FUZZ" in self.url:
                 self.fuzzing_source = 'URL'
-            elif "FUZZ" in self.body:
-                self.fuzzing_source = 'BODY'
             else:
-                for items_dict in [self.headers, self.cookies]:
+                for source, items_dict in {'HEADERS': self.headers, 'COOKIES': self.cookies, 'BODY': self.body}.items():
                     for k, v in items_dict.items():
                         if 'FUZZ' in v:
-                            self.fuzzing_source = k
+                            self.fuzzing_source = source
+                            self.param = k
                             break
 
             if self.fuzzing_source is None:
@@ -179,17 +178,23 @@ class RequestProgramData(onectf.impl.core.HttpProgramData):
         updated_url = self.url
         json_data = None
         headers = self.headers
+        cookies = self.cookies
 
         # Inject 'word' in URL or in Body
         if self.use_fuzzing:
             if "URL" == self.fuzzing_source:
                 updated_url = updated_url.replace("FUZZ", word)
             elif "BODY" == self.fuzzing_source:
-                word = urllib.parse.unquote(word)
-                body_data[self.param] = word
+                body_data = self.body.copy()
+                body_data[self.param] = body_data[self.param].replace("FUZZ", word)
+            elif "HEADERS" == self.fuzzing_source:
+                headers = self.headers.copy()
+                headers[self.param] = headers[self.param].replace("FUZZ", word)
+            elif "COOKIES" == self.fuzzing_source:
+                cookies = self.cookies.copy()
+                cookies[self.param] = cookies[self.param].replace("FUZZ", word)
             else:
-                headers = self.headers if self.fuzzing_source in self.headers else self.cookies
-                headers[self.fuzzing_source] = headers[self.fuzzing_source].replace("FUZZ", word)
+                raise Exception("Unexpected source:" + self.fuzzing_source)
         elif self.use_json:
             if self.payload is None:
                 json_data = json.loads(word)
@@ -208,9 +213,10 @@ class RequestProgramData(onectf.impl.core.HttpProgramData):
                      self.__pu.fragment))
             else:
                 word = urllib.parse.unquote(word)
+                body_data = self.body.copy()
                 body_data[self.param] = word
 
-        return word, updated_url, headers, body_data, json_data
+        return word, updated_url, headers, cookies, body_data, json_data
 
     def parse_response_content(self, response):
         if self.format == "json" and response.text != '':

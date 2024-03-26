@@ -1,5 +1,6 @@
 import logging
 import colorama
+import sys
 
 import onectf.utils.filtering
 
@@ -14,7 +15,7 @@ class BaseProgramData:
         else:
             self.verbosity = logging.WARNING
 
-        logging.basicConfig(level=self.verbosity, format='%(message)s')
+        logging.basicConfig(level=self.verbosity, format='%(message)s', stream=sys.stdout)
         colorama.init()
 
     def __str__(self):

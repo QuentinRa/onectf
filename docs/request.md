@@ -52,6 +52,7 @@ You can select with tamper script to apply:
 $ onectf request -u 'URL' -v -X POST -p param --tamper php_octal -i 'phpinfo()'
 $ onectf request -u 'URL' -v -X POST -p 'param' -I file --raw --tamper data_base64
 $ onectf request -u 'URL' -v -X GET -p 'param' -w uids -f html --tamper base64
+$ onectf request -u 'URL' -v -X POST -p param -i '{"xxx":{}}' --tamper url
 ```
 
 While fuzzing is not the primary purpose:

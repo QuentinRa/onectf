@@ -1,4 +1,4 @@
-version = "1.2.0-dev"
+version = "1.2.1-dev"
 
 # Filtering
 default_status_codes = "200-299,301,302,307,401,403,405,500"

@@ -1,4 +1,4 @@
-beautifulsoup4==4.12.3
+beautifulsoup4==4.13.0b2
 certifi==2024.2.2
 charset-normalizer==3.3.2
 colorama==0.4.6
@@ -8,4 +8,5 @@ idna==3.6
 pyfiglet==1.0.2
 requests==2.31.0
 soupsieve==2.5
+typing_extensions==4.11.0rc1
 urllib3==2.2.1
