@@ -151,7 +151,7 @@ def do_job(args: CrawlerProgramData, url):
     root = url
 
     try:
-        response = requests.get(url, data=args.body, headers=args.headers,
+        response = requests.get(url, data=args.body, headers=args.headers, cookies=args.cookies,
                                 verify=args.ssl_verify, allow_redirects=args.allow_redirects)
     except Exception as e:
         print(f'[ERROR] Could not send request, reason={e}')
