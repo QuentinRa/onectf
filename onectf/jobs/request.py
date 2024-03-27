@@ -49,6 +49,9 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
                                  help="Comma separated list of payload transformations (default=%(default)s). "
                                       f"Example values are: {', '.join(onectf.utils.tampering.tamper_known_values)}, etc.")
 
+    # Matcher and Filter Options
+    onectf.jobs.utils.parser_utils.add_filter_options(request_parser)
+
     # OUTPUT Options
     output_options.add_argument("-f", dest="format", default="html", choices=["raw", "html", "json"], help="Output format (default=%(default)s).")
 
@@ -108,6 +111,12 @@ def do_job(args, word):
         res_code = response.status_code
         res_size = int(response.headers.get('Content-Length') or 0)
 
+        # remove not matching or filtered
+        if not args.matcher.is_valid(res_code, lines, content, res_size, words):
+            return
+        if not args.filter.is_valid(res_code, lines, content, res_size, words):
+            return
+
         with print_lock:
             print(colorama.Fore.GREEN + '[+] ' + colorama.Style.BRIGHT, end="")
             print(f'{word:<25} [Status: {res_code}, Size: {res_size}, Words: {words}, Lines: {lines}]\x1b[0m')
@@ -118,7 +127,7 @@ def do_job(args, word):
         logging.error(f'[ERROR] {e}')
 
 
-class RequestProgramData(onectf.impl.core.HttpProgramData):
+class RequestProgramData(onectf.impl.core.HttpProgramDataWithFilters):
     def __init__(self, args):
         super().__init__(args)
 

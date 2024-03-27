@@ -111,7 +111,7 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
                 colorama.Fore.RESET
             )
             # try to find interesting endpoints
-            pattern = r'\/[a-zA-Z0-9_\-/]+'
+            pattern = r'\/[a-zA-Z0-9_\-/.]+'
             for raw_endpoint in re.findall(pattern, f.text):
                 if raw_endpoint and raw_endpoint != '/':
                     target = self.url + raw_endpoint.strip()[1:]
