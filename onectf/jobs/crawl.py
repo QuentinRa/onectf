@@ -153,7 +153,6 @@ def do_job(args: CrawlerProgramData, url):
     try:
         response = requests.get(url, data=args.body, headers=args.headers,
                                 verify=args.ssl_verify, allow_redirects=args.allow_redirects)
-        print(response.text)
     except Exception as e:
         print(f'[ERROR] Could not send request, reason={e}')
         # clear queue
