@@ -54,6 +54,7 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
 
     # OUTPUT Options
     output_options.add_argument("-f", dest="format", default="html", choices=["raw", "html", "json"], help="Output format (default=%(default)s).")
+    output_options.add_argument("-o", dest="output", help="Path to a file to save the response content into.")
 
     # General Options
     general_options.add_argument('-k', dest='ssl_verify', default=True, action='store_false', help='Do not verify SSL certificates.')
@@ -74,6 +75,10 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
         with open(args.inject_wordlist, 'r') as f:
             payload = f.readlines()
             use_threading = True
+
+    if use_threading and args.output is not None:
+        logging.error(f'[ERROR] Cannot save multiple responses yet.')
+        sys.exit(1)
 
     # Handle shared data
     args = RequestProgramData(args)
@@ -123,6 +128,10 @@ def do_job(args, word):
             print(colorama.Fore.RESET)
             logging.info(f'\nResponse Headers: \n\n{response.headers}')
             logging.info(f'\nResponse Content: \n\n{content}')
+
+            if args.output is not None:
+                with open(args.output, 'wb') as f:
+                    f.write(response.content)
     except Exception as e:
         logging.error(f'[ERROR] {e}')
 
@@ -133,6 +142,7 @@ class RequestProgramData(onectf.impl.core.HttpProgramDataWithFilters):
 
         self.tamper = onectf.utils.tampering.TamperingHandler(args.tamper)
         self.format = args.format
+        self.output = args.output
 
         self.use_fuzzing = args.use_fuzzing
         self.use_json = args.use_json

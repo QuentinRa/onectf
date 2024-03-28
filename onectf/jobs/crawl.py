@@ -26,14 +26,19 @@ def run(parser: argparse.ArgumentParser, crawl_parser: argparse.ArgumentParser):
 
     http_options.add_argument('-u', dest='url', help='The target website URL.', required=True)
     http_options.add_argument('-L', dest='endpoints', default=None, help='Load gobuster output list of endpoints.')
-    http_options.add_argument('-k', dest='ssl_verify', default=True, action='store_false', help='Do not verify SSL certificates.')
-    http_options.add_argument("-H", metavar="header", dest="headers", action="append", help="Header 'Name: Value', separated by colon. Multiple -H flags are accepted.")
+    http_options.add_argument('-k', dest='ssl_verify', default=True, action='store_false',
+                              help='Do not verify SSL certificates.')
+    http_options.add_argument("-H", metavar="header", dest="headers", action="append",
+                              help="Header 'Name: Value', separated by colon. Multiple -H flags are accepted.")
 
-    general_options.add_argument('-t', metavar='threads', dest='threads', default=10, help='Number of threads (default=%(default)s).')
+    general_options.add_argument('-t', metavar='threads', dest='threads', default=10,
+                                 help='Number of threads (default=%(default)s).')
     onectf.jobs.utils.parser_utils.add_verbose_options(general_options)
 
-    output_options.add_argument('--external', dest='external', action='store_true', help='Show external URLs in the list of URLs.')
-    output_options.add_argument('--pc', '--print-comments', dest='print_comments', action='store_true', help='Display comments (experimental).')
+    output_options.add_argument('--external', dest='external', action='store_true',
+                                help='Show external URLs in the list of URLs.')
+    output_options.add_argument('--pc', '--print-comments', dest='print_comments', action='store_true',
+                                help='Display comments (experimental).')
     output_options.add_argument('-o', metavar='output', dest='output_file', help='Write the output to a file.')
 
     args = parser.parse_args()
@@ -81,7 +86,7 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
 
         # we don't want to crawl these pages
         self.crawl_url_filter_match = re.compile(
-            '.*(css|woff|woff2|ttf|js|png|jpg|gif|jpeg|svg|mp4|mp3|webm|webp|ico)$')
+            '.*(css|woff|woff2|ttf|js|png|jpg|gif|jpeg|svg|mp4|mp3|webm|webp|ico|less|eot|otf|txt|mo|po|pot|psd)$')
 
         self.print_comments = args.print_comments
         self.comments = set()
@@ -93,12 +98,12 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
                     raw_endpoint = raw_endpoint.split()[0]
                     self.add_to_set(self.url + raw_endpoint[1:])
 
-        # Load robots.txt
         try:
+            # Load robots.txt
             f = requests.get(self.url + 'robots.txt')
-        except Exception:
-            pass
-        else:
+            if f.status_code != 200:
+                raise Exception(f"File 'robots.txt' not found (code={f.status_code})")
+            # Add it
             self.found_urls.add(self.url + 'robots.txt')
             logging.info(
                 colorama.Fore.BLUE + '[+] ' + colorama.Style.BRIGHT + \
@@ -121,6 +126,13 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
                         f'Added {target} from robots.txt.' + \
                         colorama.Fore.RESET
                     )
+        except Exception as e:
+            logging.debug(
+                colorama.Fore.RED + '[-] ' + colorama.Style.BRIGHT + \
+                str(e) + \
+                colorama.Fore.RESET
+            )
+            pass
 
     def add_to_set(self, url):
         if not url.startswith(self.url):
@@ -287,6 +299,6 @@ def done(args):
     if args.output_file is not None:
         with open(args.output_file, 'w') as file:
             file.writelines(
-                "URLS\n\n" + url_list + "\n" +\
+                "URLS\n\n" + url_list + "\n" + \
                 "COMMENTS\n\n" + comments_list + "\n"
             )
