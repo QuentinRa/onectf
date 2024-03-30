@@ -37,8 +37,10 @@ def run(parser: argparse.ArgumentParser, crawl_parser: argparse.ArgumentParser):
 
     output_options.add_argument('--external', dest='external', action='store_true',
                                 help='Show external URLs in the list of URLs.')
-    output_options.add_argument('--pc', '--print-comments', dest='print_comments', action='store_true',
+    output_options.add_argument('--comments', dest='print_comments', action='store_true',
                                 help='Display comments (experimental).')
+    output_options.add_argument('--emails', dest='print_emails', action='store_true',
+                                help='Display emails (experimental).')
     output_options.add_argument('-o', metavar='output', dest='output_file', help='Write the output to a file.')
 
     args = parser.parse_args()
@@ -89,7 +91,9 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
             '.*(css|woff|woff2|ttf|js|png|jpg|gif|jpeg|svg|mp4|mp3|webm|webp|ico|less|eot|otf|txt|mo|po|pot|psd)$')
 
         self.print_comments = args.print_comments
+        self.print_emails = args.print_emails
         self.comments = set()
+        self.emails = set()
 
         # Load known endpoints
         if args.endpoints:
@@ -132,7 +136,6 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
                 str(e) + \
                 colorama.Fore.RESET
             )
-            pass
 
     def add_to_set(self, url):
         if not url.startswith(self.url):
@@ -209,7 +212,14 @@ def do_job(args: CrawlerProgramData, url):
 
     # Tags using href
     for tag in soup.find_all('a', href=True):
-        parse_href_link(args, root, url, tag['href'])
+        href = tag['href']
+        # Should only be inside <a> link by design
+        if href.startswith("mailto:"):
+            if args.print_emails:
+                with set_lock:
+                    args.emails.update(href.split('mailto:')[1].strip())
+        else:
+            parse_href_link(args, root, url, href)
 
     # Tags using src
     for tag in soup.find_all(['img', 'script'], src=True):
@@ -233,6 +243,12 @@ def do_job(args: CrawlerProgramData, url):
             if comment:
                 with set_lock:
                     args.comments.add("<!-- " + comment + " -->")
+
+    if args.print_emails:
+        emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', soup.get_text())
+        if emails:
+            with set_lock:
+                args.emails.update(emails)
 
 
 def parse_href_link(args, root, url, href):
@@ -270,10 +286,12 @@ def truncate_link_url(url):
 def done(args):
     urls = sorted(args.found_urls, key=url_extension)
     comments = args.comments
+    emails = args.emails
 
     # Format Data As String
     url_list = ''
     comments_list = '\n'.join(comments)
+    email_list = '\n'.join(emails)
 
     # Highlight filters
     pattern = re.compile('.*(/|html|php|js|css)$')
@@ -296,9 +314,15 @@ def done(args):
         print(comments_list)
         print()
 
+    if args.print_comments:
+        print("\nFound the following emails:\n")
+        print(email_list)
+        print()
+
     if args.output_file is not None:
         with open(args.output_file, 'w') as file:
             file.writelines(
                 "URLS\n\n" + url_list + "\n" + \
-                "COMMENTS\n\n" + comments_list + "\n"
+                "COMMENTS\n\n" + comments_list + "\n" + \
+                "EMAILS\n\n" + email_list + "\n"
             )
