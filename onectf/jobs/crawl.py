@@ -314,7 +314,7 @@ def done(args):
         print(comments_list)
         print()
 
-    if args.print_comments:
+    if args.print_emails:
         print("\nFound the following emails:\n")
         print(email_list)
         print()

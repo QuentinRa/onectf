@@ -48,6 +48,7 @@ class UffufProgramData(onectf.impl.core.HttpProgramDataWithFilters):
         self.file = args.file
         self.format = args.format
         self.should_spoof = args.should_spoof
+        self.disable_fuzzing = args.disable_fuzzing
 
         if args.wordlist is not None:
             try:
@@ -64,9 +65,13 @@ class UffufProgramData(onectf.impl.core.HttpProgramDataWithFilters):
                 print(f"Error: Wordlist '{self.wordlist}' not found.")
                 sys.exit(1)
         else:
-            args.words = [args.word]
-            self.wordlist = '<word = ' + args.word + '>'
             self.keyword = "FUZZ"
+            if args.word is not None:
+                args.words = [args.word]
+                self.wordlist = '<word = ' + args.word + '>'
+            else:
+                args.words = ['dummy']
+                self.wordlist = '<no fuzzing>'
 
         try:
             with open(self.file, 'rb') as file:
@@ -89,7 +94,7 @@ class UffufProgramData(onectf.impl.core.HttpProgramDataWithFilters):
         else:
             self.filename = args.filename
 
-        if self.keyword not in self.filename and self.keyword not in self.filetype:
+        if (self.keyword not in self.filename and self.keyword not in self.filetype) and not self.disable_fuzzing:
             print(f'Error: The keyword "{self.keyword}" was not found in either the filename or the filetype.')
             sys.exit(2)
 
@@ -143,6 +148,7 @@ def run(parser: argparse.ArgumentParser, uffuf_parser: argparse.ArgumentParser):
     wordlist = input_options.add_mutually_exclusive_group(required=True)
     wordlist.add_argument("-w", dest="wordlist", help="Wordlist file path and (optional) keyword separated by colon. eg. '/path/to/wordlist:KEYWORD'")
     wordlist.add_argument("-W", dest="word", help="Word used instead of a wordlist.")
+    wordlist.add_argument("--pass", dest="disable_fuzzing", action="store_true", help="Simply upload the file.")
 
     # Handle shared data
     args = parser.parse_args()
