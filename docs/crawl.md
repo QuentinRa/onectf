@@ -29,6 +29,7 @@ The script was tested on:
 * [HTB Cap](https://app.hackthebox.com/machines/Cap) <small>(location.href, anchors, redirections)</small>
 * [THM GamingServer](https://tryhackme.com/room/gamingserver)  <small>(weird robots.txt)</small>
 * [THM Archangel](https://tryhackme.com/r/room/archangel)  <small>(emails)</small>
+* ~~[THM Tech_Supp0rt: 1](https://tryhackme.com/r/room/techsupp0rt1)  <small>(404 index)</small>~~
 
 ## Roadmap
 

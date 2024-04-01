@@ -88,7 +88,7 @@ class CrawlerProgramData(onectf.impl.core.HttpProgramData):
 
         # we don't want to crawl these pages
         self.crawl_url_filter_match = re.compile(
-            '.*(css|woff|woff2|ttf|js|png|jpg|gif|jpeg|svg|mp4|mp3|webm|webp|ico|less|eot|otf|txt|mo|po|pot|psd)$')
+            '.*(css|woff|woff2|ttf|js|png|jpg|gif|jpeg|svg|mp4|mp3|webm|webp|ico|less|eot|otf|txt|mo|po|pot|psd|xml|crt|json|md)$')
 
         self.print_comments = args.print_comments
         self.print_emails = args.print_emails
