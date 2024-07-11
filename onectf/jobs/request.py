@@ -76,10 +76,6 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
             payload = f.readlines()
             use_threading = True
 
-    if use_threading and args.output is not None:
-        logging.error(f'[ERROR] Cannot save multiple responses yet.')
-        sys.exit(1)
-
     # Handle shared data
     args = RequestProgramData(args)
     logging.info(f'{args}\n')
@@ -92,6 +88,8 @@ def run(parser: argparse.ArgumentParser, request_parser: argparse.ArgumentParser
         onectf.impl.worker.start_threads(execute_worker_task, args, args.words)
     else:
         do_job(args, payload[0])
+
+    finish_job(args)
 
 
 def execute_worker_task(args):
@@ -129,11 +127,23 @@ def do_job(args, word):
             logging.info(f'\nResponse Headers: \n\n{response.headers}')
             logging.info(f'\nResponse Content: \n\n{content}')
 
-            if args.output is not None:
-                with open(args.output, 'wb') as f:
-                    f.write(response.content)
+            args.results.append({
+                "word": word,
+                "status": res_code,
+                "size": res_size,
+                "words": words,
+                "lines": lines,
+                "headers": dict(response.headers),
+                "content": content
+            })
     except Exception as e:
         logging.error(f'[ERROR] {e}')
+
+
+def finish_job(args):
+    if args.output is not None:
+        with open(args.output, 'w') as f:
+            json.dump(args.results, f, indent=2)
 
 
 class RequestProgramData(onectf.impl.core.HttpProgramDataWithFilters):
@@ -147,6 +157,8 @@ class RequestProgramData(onectf.impl.core.HttpProgramDataWithFilters):
         self.use_fuzzing = args.use_fuzzing
         self.use_json = args.use_json
         self.use_raw = args.use_raw
+
+        self.results = []
 
         self.payload = args.payload
         if self.use_fuzzing:
