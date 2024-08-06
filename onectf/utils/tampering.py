@@ -17,9 +17,9 @@ class TamperingHandler:
         operations = tamper_list.split(',')
 
         for operation in operations:
-            operation = "_" + operation
-            if hasattr(self, operation):
-                method = getattr(self, operation)
+            _operation = "_" + operation
+            if hasattr(self, _operation):
+                method = getattr(self, _operation)
                 self.invoke.append(method)
             else:
                 print(f"[ERROR] The tamper operation <{operation}> does not exist.")
@@ -81,6 +81,22 @@ class TamperingHandler:
         if had_letter:
             encoded += '"'
         return encoded.replace("\\0o", "\\")
+
+    def _php_base_convert(self, word):
+        """Experimental, require testing"""
+        encoded = ''
+        first_letter = True
+        for letter in word:
+            if letter.isalpha() or letter in ['.']:
+                if not first_letter:
+                    encoded += '.'
+                encoded += f"base_convert({ord(letter) - ord('a') + 10},10,36)" if letter.isalpha() else "(pi().pi())[1]"
+                first_letter = False
+            else:
+                #print("> Not encoded:", letter)
+                encoded += letter
+                first_letter = True
+        return encoded
 
     def __str__(self):
         return self.__tamper_list
