@@ -84,18 +84,31 @@ class TamperingHandler:
 
     def _php_base_convert(self, word):
         """Experimental, require testing"""
-        encoded = ''
-        first_letter = True
+        encoded, tmp = '', ''
+        last_was_alpha = False
+
         for letter in word:
-            if letter.isalpha() or letter in ['.']:
-                if not first_letter:
-                    encoded += '.'
-                encoded += f"base_convert({ord(letter) - ord('a') + 10},10,36)" if letter.isalpha() else "(pi().pi())[1]"
-                first_letter = False
+            if letter in ['"', "'"]:
+                continue
+
+            if letter.isalpha():
+                tmp += letter
             else:
-                #print("> Not encoded:", letter)
-                encoded += letter
-                first_letter = True
+                if tmp:
+                    tmp = ("." if last_was_alpha else "") + "base_convert(" + str(int(tmp, 36)) + ",10,36)"
+                    encoded += tmp
+                    tmp = ""
+                    last_was_alpha = True
+
+                if letter == '.':
+                    encoded += ("." if last_was_alpha else "") + 'phpversion()[1]'
+                    last_was_alpha = True
+                elif letter == ' ':
+                    encoded += ("." if last_was_alpha else "") + 'microtime()[10]'
+                    last_was_alpha = True
+                else:
+                    encoded += letter
+                    last_was_alpha = False
         return encoded
 
     def __str__(self):
