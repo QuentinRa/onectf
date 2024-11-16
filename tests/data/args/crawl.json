@@ -3,7 +3,8 @@
 
     "endpoints": null,
 
-    "external": false,
-    "print_comments": false,
+    "external": true,
+    "print_comments": true,
+    "print_emails": true,
     "output_file": null
 }

@@ -15,7 +15,6 @@ onectf crawl -h
 onectf crawl -u URL
 onectf crawl [...] --comments # print HTML comments
 onectf crawl [...] --emails   # print emails
-onectf crawl [...] -k         # ignore SSL errors
 onectf crawl [...] -L /path/to/list_of_endpoints.txt
 onectf crawl [...] -o /tmp/output.txt
 onectf crawl [...] --external # also list external URLs
