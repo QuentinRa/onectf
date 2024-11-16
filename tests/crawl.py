@@ -23,6 +23,7 @@ class TestHosts(unittest.TestCase):
                  '<a href="mailto:john@doe.com">jane@doe.com</a>'
                  '<a href="#anchor">not new</a>'
                  '<a href="/">not new</a>'
+                 '<a href="/myFolder/">myFolder</a>'
                  '<a href="resume.pdf">download</a>'
                  '<img src=secretFolder/myimage.png>'
                  '<script src=secretFolder/love.js />'

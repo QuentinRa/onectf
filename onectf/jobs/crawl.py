@@ -129,7 +129,6 @@ class CustomCrawler(scrapy.Spider):
         self.results[key_trunc].add(truncated_url)
 
     def parse(self, response, **kwargs):
-        # Do not crawl this URL twice
         self.visited_urls.add(response.url)
 
         # Patch to skip files that we can't read
@@ -151,9 +150,11 @@ class CustomCrawler(scrapy.Spider):
                 continue
             absolute_url, external = compute_absolute_url(response, link)
             if not external and absolute_url not in self.visited_urls:
+                self.visited_urls.add(response.url)
                 yield response.follow(absolute_url, callback=self.parse)
             truncated_url = truncated_file_url(absolute_url)
             if not external and truncated_url not in self.visited_urls:
+                self.visited_urls.add(response.url)
                 yield response.follow(truncated_url, callback=self.parse)
             self.add_result(external, absolute_url, truncated_url)
 
@@ -163,9 +164,11 @@ class CustomCrawler(scrapy.Spider):
         for link in links:
             absolute_url, external = compute_absolute_url(response, link)
             if not external and absolute_url not in self.visited_urls:
+                self.visited_urls.add(response.url)
                 yield response.follow(absolute_url, callback=self.parse)
             truncated_url = truncated_file_url(absolute_url)
             if not external and truncated_url not in self.visited_urls:
+                self.visited_urls.add(response.url)
                 yield response.follow(truncated_url, callback=self.parse)
             self.add_result(external, absolute_url, truncated_url)
 
@@ -177,9 +180,11 @@ class CustomCrawler(scrapy.Spider):
                 link = match[1]
                 absolute_url, external = compute_absolute_url(response, link)
                 if not external and absolute_url not in self.visited_urls:
+                    self.visited_urls.add(response.url)
                     yield response.follow(absolute_url, callback=self.parse)
                 truncated_url = truncated_file_url(absolute_url)
                 if not external and truncated_url not in self.visited_urls:
+                    self.visited_urls.add(response.url)
                     yield response.follow(truncated_url, callback=self.parse)
                 self.add_result(external, absolute_url, truncated_url)
 
